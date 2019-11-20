@@ -1,7 +1,14 @@
 pub mod analyze;
 pub use analyze::analyze;
 
+<<<<<<< HEAD:libflux/src/flux/semantic/mod.rs
 mod import;
+=======
+pub mod flatbuffers; 
+
+mod env;
+mod fresh;
+>>>>>>> feat(libflux/semantic): serialize semantic graph flatbuffers:libflux/src/semantic/mod.rs
 mod infer;
 mod sub;
 
