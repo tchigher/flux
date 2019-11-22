@@ -8,7 +8,6 @@ use crate::ast;
 
 use crate::semantic; 
 use crate::semantic::walk; 
-use crate::semantic::walk::Node;
 use semantic_generated::fbsemantic;
 use flatbuffers::{UnionWIPOffset, WIPOffset}; 
 
@@ -17,7 +16,7 @@ use chrono::Offset;
 
 pub fn serialize(semantic_pkg: &mut semantic::nodes::Package) -> Result<(Vec<u8>, usize), String> {    
     let v = new_serializing_visitor_with_capacity(1024);
-    walk::walk(&mut v, walk::Node::Package(semantic_pkg));
+    walk::walk(&mut v, Rc::new(walk::Node::Package(semantic_pkg)));
     v.finish()
 }
 
@@ -53,7 +52,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
         let node = *node;
         let loc = v.create_loc(node.loc()); 
         match node {
-            Node::IntegerLit(int) => {
+            walk::Node::IntegerLit(int) => {
                 let int = fbsemantic::IntegerLiteral::create(
                     &mut v.builder, 
                     &fbsemantic::IntegerLiteralArgs {
