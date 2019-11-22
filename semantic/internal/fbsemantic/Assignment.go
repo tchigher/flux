@@ -3,15 +3,15 @@
 package fbsemantic
 
 type Assignment = byte
-
 const (
-	AssignmentNONE                     Assignment = 0
-	AssignmentMemberAssignment         Assignment = 1
+	AssignmentNONE Assignment = 0
+	AssignmentMemberAssignment Assignment = 1
 	AssignmentNativeVariableAssignment Assignment = 2
 )
 
 var EnumNamesAssignment = map[Assignment]string{
-	AssignmentNONE:                     "NONE",
-	AssignmentMemberAssignment:         "MemberAssignment",
-	AssignmentNativeVariableAssignment: "NativeVariableAssignment",
+	AssignmentNONE:"NONE",
+	AssignmentMemberAssignment:"MemberAssignment",
+	AssignmentNativeVariableAssignment:"NativeVariableAssignment",
 }
+

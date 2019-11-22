@@ -11,9 +11,12 @@ use crate::semantic::walk;
 use semantic_generated::fbsemantic;
 use flatbuffers::{UnionWIPOffset, WIPOffset}; 
 
-pub fn serialize(ast_pkg: &ast::Package) -> Result<(Vec<u8>, usize), String> {    
+extern crate chrono;
+use chrono::Offset; 
+
+pub fn serialize(semantic_pkg: &mut semantic::nodes::Package) -> Result<(Vec<u8>, usize), String> {    
     let v = new_serializing_visitor_with_capacity(1024);
-    walk::walk(&v, walk::Node::Package(ast_pkg));
+    walk::walk(&mut v, Rc::new(walk::Node::Package(semantic_pkg)));
     v.finish()
 }
 
@@ -29,8 +32,8 @@ struct SerializingVisitor<'a> {
     inner: Rc<RefCell<SerializingVisitorState<'a>>>,
 }
 
-impl<'a> semantic::walk::Visitor<'a> for SerializingVisitor<'a> {
-    fn visit(&self, _node: Rc<walk::Node<'a>>) -> Option<Self> {
+impl<'a> semantic::walk::Visitor for SerializingVisitor<'a> {
+    fn visit(&mut self, _node: Rc<walk::Node<'a>>) -> Option<Self> {
         let v = self.inner.borrow();
         if let Some(_) = &v.err {
             return None;
@@ -40,7 +43,7 @@ impl<'a> semantic::walk::Visitor<'a> for SerializingVisitor<'a> {
         })
     }
 
-    fn done(&self, node: Rc<walk::Node<'a>>) {
+    fn done(&mut self, node: Rc<walk::Node<'a>>) {
         let mut v = &mut *self.inner.borrow_mut();
         if let Some(_) = &v.err {
             return;
@@ -100,11 +103,393 @@ impl<'a> semantic::walk::Visitor<'a> for SerializingVisitor<'a> {
                 ); 
                 v.expr_stack.push((string.as_union_value(), fbsemantic::Expression::StringLiteral))
             }
-            walk::Node::DurationLit(dur_lit) => {
-                let mut dur_vec: Vec<WIPOffset<fbsemantic::Duration>> =
-                    Vec::with_capacity(dur_lit.values.len()); 
+            // walk::Node::DurationLit(dur_lit) => {
+            //     let mut dur_vec: Vec<WIPOffset<fbsemantic::Duration>> =
+            //         Vec::with_capacity(dur_lit.value); 
+            // }
+            
+            walk::Node::DateTimeLit(datetime) => {
+                let val = datetime.value.to_rfc3339(); 
+                let val = v.create_string(&val);
+
+                let secs = datetime.value.timestamp(); 
+                let nano_secs = datetime.value.timestamp_subsec_nanos(); 
+                let offset = datetime.value.offset().fix().local_minus_utc();
+
+                let time = fbsemantic::Time::create(
+                    &mut v.builder, 
+                    &fbsemantic::TimeArgs {
+                        secs: secs, 
+                        nsecs: nano_secs, 
+                        offset: offset, 
+                    }, 
+                );
+
+                let datetime = fbsemantic::DateTimeLiteral::create(
+                    &mut v.builder, 
+                    &fbsemantic::DateTimeLiteralArgs {
+                        loc, 
+                        value: Some(time), 
+                    },
+                );
+                v.expr_stack.push((datetime.as_union_value(), fbsemantic::Expression::DateTimeLiteral))
             }
-        }
+
+            walk::Node::BooleanLit(boolean) => {
+                let boolean =  fbsemantic::BooleanLiteral::create(
+                    &mut v.builder, 
+                    &fbsemantic::BooleanLiteralArgs {
+                        loc, 
+                        value: boolean.value, 
+                    }
+                ); 
+                v.expr_stack.push((boolean.as_union_value(), fbsemantic::Expression::BooleanLiteral))
+            }
+
+            // Are Identifier and Identifier Expression the same thing? 
+            walk::Node::Identifier(id) => {
+                let name = v.create_string(&id.name); 
+                let boolean =  fbsemantic::Identifier::create(
+                    &mut v.builder, 
+                    &fbsemantic::IdentifierArgs {
+                        loc, 
+                        name, 
+                    }
+                ); 
+                v.expr_stack.push((boolean.as_union_value(), fbsemantic::Expression::Identifier))
+            }
+
+            walk::Node::Property(prop) => {
+                // the value for a property is always an expression
+                let (value, value_type) = v.pop_expr();
+                let (key, key_type) = v.pop_property_key();
+                let prop = fbsemantic::Property::create(
+                    &mut v.builder,
+                    &fbsemantic::PropertyArgs {
+                        loc,
+                        key_type,
+                        key,
+                        value_type,
+                        value,
+                    },
+                );
+                v.properties.push(prop);
+            }
+            walk::Node::UnaryExpr(unary) => {
+                let operator = fb_operator(&unary.operator); 
+                let (argument, argument_type) = v.pop_expr(); 
+                let unary = fbsemantic::UnaryExpression::create(
+                    &mut v.builder, 
+                    &fbsemantic::UnaryExpressionArgs {
+                        loc, 
+                        operator,  
+                        argument,
+                        argument_type, 
+                    }, 
+                ); 
+                v.expr_stack.push((unary.as_union_value(), fbsemantic::Expression::UnaryExpression)); 
+            }
+
+            walk::Node::ObjectExpr(obj) => {
+                let with = match obj.with {
+                    None => None, 
+                    Some(_) => v.pop_expr_with_kind(fbsemantic::Expression::Identifier), 
+                }; 
+
+                let properties = {
+                    let prop_vec = v.create_property_vector(obj.properties.len());
+                    let fb_prop_vec = v.builder.create_vector(&prop_vec.as_slice());
+                    Some(fb_prop_vec)
+                }; 
+
+                let obj = fbsemantic::ObjectExpression::create(
+                    &mut v.builder, 
+                    &fbsemantic::ObjectExpressionArgs {
+                        loc, 
+                        with, 
+                        properties, 
+                    }, 
+                ); 
+                v.expr_stack
+                    .push((obj.as_union_value(), fbsemantic::Expression::ObjectExpression));
+            }
+
+            walk::Node::IndexExpr(_) => {
+                let (array, array_type) = v.pop_expr(); 
+                let (index, index_type) = v.pop_expr(); 
+
+                let index = fbsemantic::IndexExpression::create(
+                    &mut v.builder, 
+                    &fbsemantic::IndexExpressionArgs {
+                        loc, 
+                        array, 
+                        array_type, 
+                        index, 
+                        index_type, 
+                    }, 
+                ); 
+                v.expr_stack.push((index.as_union_value(), fbsemantic::Expression::IndexExpression)); 
+            }
+
+            walk::Node::MemberExpr(member) => {
+                let property = v.create_string(&member.property); 
+                let (object, object_type) = v.pop_expr(); 
+                let index = fbsemantic::MemberExpression::create(
+                    &mut v.builder, 
+                    &fbsemantic::MemberExpressionArgs {
+                        loc, 
+                        object, 
+                        object_type, 
+                        property, 
+                    }, 
+                ); 
+            }
+
+            walk::Node::LogicalExpr(logical) => {
+                let operator = fb_logical_operator(&logical.operator); 
+                let (right, right_type) = v.pop_expr(); 
+                let (left, left_type) = v.pop_expr(); 
+                let logical = fbsemantic::LogicalExpression::create(
+                    &mut v.builder,
+                    &fbsemantic::LogicalExpressionArgs {
+                        loc,
+                        operator,
+                        left_type,
+                        left,
+                        right_type,
+                        right,
+                    },
+                );
+                v.expr_stack
+                    .push((logical.as_union_value(), fbsemantic::Expression::LogicalExpression));
+            }
+
+            walk::Node::ConditionalExpr(_) => {
+                let (test, test_type) = v.pop_expr(); 
+                let (alternate, alternate_type) = v.pop_expr(); 
+                let (consequent, consequent_type) = v.pop_expr(); 
+
+                let cond = fbsemantic::ConditionalExpression::create(
+                    &mut v.builder,
+                    &fbsemantic::ConditionalExpressionArgs {
+                        loc,
+                        test, 
+                        test_type, 
+                        alternate, 
+                        alternate_type, 
+                        consequent, 
+                        consequent_type, 
+                    },
+                );
+                v.expr_stack
+                    .push((cond.as_union_value(), fbsemantic::Expression::ConditionalExpression));
+            }
+
+            walk::Node::CallExpr(call) => {
+                let arguments = match call.arguments.len() {
+                    0 => None,
+                    1 => v.pop_expr_with_kind(fbsemantic::Expression::ObjectExpression),
+                    _ => {
+                        v.err = Some(String::from("found call with more than one argument"));
+                        return;
+                    }
+                };
+                let (callee, callee_type) = v.pop_expr();
+                let (pipe, pipe_type) = v.pop_expr(); 
+                let call = fbsemantic::CallExpression::create(
+                    &mut v.builder,
+                    &fbsemantic::CallExpressionArgs {
+                        loc,
+                        callee,
+                        callee_type,
+                        arguments,
+                        pipe, 
+                        pipe_type, 
+                    },
+                );
+                v.expr_stack
+                    .push((call.as_union_value(), fbsemantic::Expression::CallExpression));
+            }
+
+            walk::Node::BinaryExpr(bin) => {
+                let operator = fb_operator(&bin.operator); 
+                let (right, right_type) = v.pop_expr(); 
+                let (left, left_type) = v.pop_expr(); 
+                let bin = fbsemantic::BinaryExpression::create(
+                    &mut v.builder,
+                    &fbsemantic::BinaryExpressionArgs {
+                        loc,
+                        operator,
+                        left_type,
+                        left,
+                        right_type,
+                        right,
+                    },
+                );
+                v.expr_stack
+                    .push((bin.as_union_value(), fbsemantic::Expression::BinaryExpression));
+            }
+
+            walk::Node::FunctionExpr(func) => {
+                let mut param_list: Vec<WIPOffset<fbsemantic::FunctionParameter>> =
+                    Vec::with_capacity(func.params.len()); 
+                for param in func.params {
+                    let ident = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                    let fb_param = fbsemantic::FunctionParameter::create(
+                        &mut v.builder, 
+                        &fbsemantic::FunctionParameterArgs {
+                            loc, 
+                            key: ident, 
+                        }, 
+                    ); 
+                    param_list.push(fb_param); 
+                }
+                let pipe = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let fb_param_list = Some(v.builder.create_vector(param_list.as_slice())); 
+                let parameters = fbsemantic::FunctionParameters::create(
+                    &mut v.builder, 
+                    &fbsemantic::FunctionParametersArgs {
+                        loc, 
+                        list: fb_param_list, 
+                        pipe: pipe, 
+                    }, 
+                ); 
+                let block = match v.blocks.pop() {
+                    None => {
+                        v.err = Some(String::from("pop empty block stack"));
+                        return;
+                    }
+                    Some(b) => b,
+                }; 
+                let func_block = fbsemantic::FunctionBlock::create(
+                    &mut v.builder, 
+                    &fbsemantic::FunctionBlockArgs {
+                        loc, 
+                        parameters: Some(parameters), 
+                        body: Some(block), 
+                    }, 
+                ); 
+                let defaults = v.pop_expr_with_kind(fbsemantic::Expression::ObjectExpression); 
+                let func = fbsemantic::FunctionExpression::create(
+                    &mut v.builder, 
+                    &fbsemantic::FunctionExpressionArgs {
+                        loc, 
+                        defaults, 
+                        Block: Some(func_block),
+                    },
+                ); 
+                v.expr_stack.push((func.as_union_value(), fbsemantic::Expression::FunctionExpression)); 
+            }
+            walk::Node::ArrayExpr(array) => {
+                let num_elems = array.elements.len();
+                let elements = {
+                    let start = v.expr_stack.len() - num_elems;
+                    let elems = &v.expr_stack.as_slice()[start..];
+                    let mut wrapped_elems = Vec::with_capacity(num_elems);
+                    for (e, et) in elems {
+                        wrapped_elems.push(fbsemantic::WrappedExpression::create(
+                            &mut v.builder,
+                            &fbsemantic::WrappedExpressionArgs {
+                                expression_type: *et,
+                                expression: Some(*e),
+                            },
+                        ));
+                    }
+                    Some(v.builder.create_vector(wrapped_elems.as_slice()))
+                };
+                v.expr_stack.truncate(v.expr_stack.len() - num_elems);
+                let array = fbsemantic::ArrayExpression::create(
+                    &mut v.builder,
+                    &fbsemantic::ArrayExpressionArgs {
+                        loc,
+                        elements,
+                    },
+                );
+                v.expr_stack
+                    .push((array.as_union_value(), fbsemantic::Expression::ArrayExpression))
+            }
+            walk::Node::StringExpr(string) => {
+                let parts = {
+                    let num_parts = string.parts.len();
+                    let start = v.string_expr_parts.len() - num_parts;
+                    let parts_sl = &v.string_expr_parts.as_slice()[start..];
+                    let vec = v.builder.create_vector(parts_sl);
+                    v.string_expr_parts.truncate(start);
+                    Some(vec)
+                };
+                let string = fbsemantic::StringExpression::create(
+                    &mut v.builder,
+                    &fbsemantic::StringExpressionArgs { loc, parts },
+                );
+                v.expr_stack
+                    .push((string.as_union_value(), fbsemantic::Expression::StringExpression));
+            }
+            walk::Node::MemberAssgn(mem) => {
+                let (init_, init__type) = v.pop_expr(); 
+                let member = v.pop_expr_with_kind(fbsemantic::Expression::MemberExpression); 
+                let mem = fbsemantic::MemberAssignment::create(
+                    &mut v.builder, 
+                    &fbsemantic::MemberAssignmentArgs {
+                        loc, 
+                        member,
+                        init__type,  
+                        init_
+                    }, 
+                );
+                v.member_assign = Some(mem.as_union_value()); 
+            }
+            walk::Node::VariableAssgn(native) => {
+                let (init_, init__type) = v.pop_expr(); 
+                let identifier = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let native = fbsemantic::NativeVariableAssignment::create(
+                    &mut v.builder, 
+                    &fbsemantic::NativeVariableAssignmentArgs {
+                        loc, 
+                        identifier, 
+                        init__type, 
+                        init_, 
+                    }, 
+                );
+                v.stmts.push((native.as_union_value(), fbsemantic::Statement::VariableAssignment)); 
+            }
+            walk::Node::ReturnStmt(return_st) => {
+                let (argument, argument_type) = v.pop_expr(); 
+                let return_st = fbsemantic::ReturnStatement::create(
+                    &mut v.builder, 
+                    &fbsemantic::ReturnStatementArgs {
+                        loc, 
+                        argument, 
+                        argument_type
+                    },
+                ); 
+                v.stmts.push((return_st.as_union_value(), fbsemantic::Statement::ReturnStatement)); 
+            }
+            walk::Node::ExprStmt(expr) => {
+                let (expression, expression_type) = v.pop_expr(); 
+                let expr = fbsemantic::ExpressionStatement::create(
+                    &mut v.builder, 
+                    &fbsemantic::ExpressionStatementArgs {
+                        loc, 
+                        expression, 
+                        expression_type
+                    },
+                ); 
+                v.stmts.push((expr.as_union_value(), fbsemantic::Statement::ExpressionStatement)); 
+            }
+            walk::Node::TestStmt(test) => {
+                let (assignment, assignment_type) = v.pop_assignment_stmt();
+                let ts = fbsemantic::TestStatement::create(
+                    &mut v.builder,
+                    &fbsemantic::TestStatementArgs {
+                        base_node,
+                        assignment_type,
+                        assignment,
+                    },
+                );
+                v.stmts
+                    .push((ts.as_union_value(), fbsemantic::Statement::TestStatement));
+            }
+        } 
     }
 }
 
@@ -239,7 +624,7 @@ impl<'a> SerializingVisitorState<'a> {
 
     fn pop_property_key(&mut self) -> (Option<WIPOffset<UnionWIPOffset>>, fbsemantic::PropertyKey) {
         match self.pop_expr() {
-            (offset, fbsemantic::Expression::IdentifierExpression) => (offset, fbsemantic::PropertyKey::Identifier),
+            (offset, fbsemantic::Expression::Identifier) => (offset, fbsemantic::PropertyKey::Identifier),
             (offset, fbsemantic::Expression::StringLiteral) => {
                 (offset, fbsemantic::PropertyKey::StringLiteral)
             }
@@ -252,21 +637,21 @@ impl<'a> SerializingVisitorState<'a> {
         }
     }
 
-    // fn pop_assignment_stmt(&mut self) -> (Option<WIPOffset<UnionWIPOffset>>, fbsemantic::Assignment) {
-    //     match self.stmts.pop() {
-    //         Some((va, fbsemantic::Statement::)) => {
-    //             (Some(va), fbsemantic::Assignment::VariableAssignment)
-    //         }
-    //         None => {
-    //             self.err = Some(String::from("Tried popping empty statement stack. Expected assignment on top of stack."));
-    //             (None, fbsemantic::Assignment::NONE)
-    //         }
-    //         Some(_) => {
-    //             self.err = Some(String::from("Expected assignment on top of stack statement stack."));
-    //             (None, fbsemantic::Assignment::NONE)
-    //         }
-    //     }
-    // }
+    fn pop_assignment_stmt(&mut self) -> (Option<WIPOffset<UnionWIPOffset>>, fbsemantic::Assignment) {
+        match self.stmts.pop() {
+            Some((va, fbsemantic::Statement::NativeVariableAssignment)) => {
+                (Some(va), fbsemantic::Assignment::NativeVariableAssignment)
+            }
+            None => {
+                self.err = Some(String::from("Tried popping empty statement stack. Expected assignment on top of stack."));
+                (None, fbsemantic::Assignment::NONE)
+            }
+            Some(_) => {
+                self.err = Some(String::from("Expected assignment on top of stack statement stack."));
+                (None, fbsemantic::Assignment::NONE)
+            }
+        }
+    }
 
     fn create_loc(&mut self, loc: &ast::SourceLocation) -> Option<WIPOffset<fbsemantic::SourceLocation<'a>>> {
         let file = self.create_opt_string(&loc.file);
@@ -287,5 +672,38 @@ impl<'a> SerializingVisitorState<'a> {
                 source,
             },
         ))
+    }
+}
+
+fn fb_operator(o: &ast::Operator) -> fbsemantic::Operator {
+    match o {
+        ast::Operator::MultiplicationOperator => fbsemantic::Operator::MultiplicationOperator,
+        ast::Operator::DivisionOperator => fbsemantic::Operator::DivisionOperator,
+        ast::Operator::ModuloOperator => fbsemantic::Operator::ModuloOperator,
+        ast::Operator::PowerOperator => fbsemantic::Operator::PowerOperator,
+        ast::Operator::AdditionOperator => fbsemantic::Operator::AdditionOperator,
+        ast::Operator::SubtractionOperator => fbsemantic::Operator::SubtractionOperator,
+        ast::Operator::LessThanEqualOperator => fbsemantic::Operator::LessThanEqualOperator,
+        ast::Operator::LessThanOperator => fbsemantic::Operator::LessThanOperator,
+        ast::Operator::GreaterThanEqualOperator => fbsemantic::Operator::GreaterThanEqualOperator,
+        ast::Operator::GreaterThanOperator => fbsemantic::Operator::GreaterThanOperator,
+        ast::Operator::StartsWithOperator => fbsemantic::Operator::StartsWithOperator,
+        ast::Operator::InOperator => fbsemantic::Operator::InOperator,
+        ast::Operator::NotOperator => fbsemantic::Operator::NotOperator,
+        ast::Operator::ExistsOperator => fbsemantic::Operator::ExistsOperator,
+        ast::Operator::NotEmptyOperator => fbsemantic::Operator::NotEmptyOperator,
+        ast::Operator::EmptyOperator => fbsemantic::Operator::EmptyOperator,
+        ast::Operator::EqualOperator => fbsemantic::Operator::EqualOperator,
+        ast::Operator::NotEqualOperator => fbsemantic::Operator::NotEqualOperator,
+        ast::Operator::RegexpMatchOperator => fbsemantic::Operator::RegexpMatchOperator,
+        ast::Operator::NotRegexpMatchOperator => fbsemantic::Operator::NotRegexpMatchOperator,
+        ast::Operator::InvalidOperator => fbsemantic::Operator::InvalidOperator,
+    }
+}
+
+fn fb_logical_operator(lo: &ast::LogicalOperator) -> fbsemantic::LogicalOperator {
+    match lo {
+        ast::LogicalOperator::AndOperator => fbsemantic::LogicalOperator::AndOperator,
+        ast::LogicalOperator::OrOperator => fbsemantic::LogicalOperator::OrOperator,
     }
 }

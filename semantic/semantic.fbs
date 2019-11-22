@@ -92,11 +92,21 @@ table Constraint {
 }
 
 union Statement {
+<<<<<<< HEAD
   OptionStatement,
   BuiltinStatement,
   TestStatement,
   ExpressionStatement,
   ReturnStatement,
+=======
+    OptionStatement,             
+    BuiltinStatement,            
+    TestStatement,               
+    ExpressionStatement,         
+    ReturnStatement,
+    NativeVariableAssignment,    
+    MemberAssignment,          
+>>>>>>> feat(libflux/semantic): add more node cases to semantic graph flatbuffers serialization
 }
 
 union Assignment {
@@ -105,6 +115,7 @@ union Assignment {
 }
 
 union Expression  {
+<<<<<<< HEAD
   StringExpression,
   ArrayExpression,
   FunctionExpression,
@@ -125,6 +136,28 @@ union Expression  {
   StringLiteral,
   RegexpLiteral,
   UnsignedIntegerLiteral,
+=======
+    StringExpression,       
+    ArrayExpression,        
+    FunctionExpression,     
+    BinaryExpression,       
+    CallExpression,         
+    ConditionalExpression,  
+    Identifier,   
+    LogicalExpression,      
+    MemberExpression,       
+    IndexExpression,        
+    ObjectExpression,       
+    UnaryExpression,        
+    BooleanLiteral,          
+    DateTimeLiteral,         
+    DurationLiteral,         
+    FloatLiteral,            
+    IntegerLiteral,          
+    StringLiteral,           
+    RegexpLiteral,           
+    UnsignedIntegerLiteral,  
+>>>>>>> feat(libflux/semantic): add more node cases to semantic graph flatbuffers serialization
 }
 
 table Package {
@@ -331,10 +364,16 @@ table IndexExpression {
 }
 
 table ObjectExpression {
+<<<<<<< HEAD
   loc:SourceLocation;
   with:IdentifierExpression;
   properties:[Property];
   typ:MonoType;
+=======
+    loc:SourceLocation;
+    with:Identifier;
+    properties:[Property];
+>>>>>>> feat(libflux/semantic): add more node cases to semantic graph flatbuffers serialization
 }
 
 table UnaryExpression {
@@ -356,10 +395,13 @@ table IdentifierExpression {
   typ:MonoType;
 }
 
+<<<<<<< HEAD
 table Identifier {
   loc:SourceLocation;
   name:string;
 }
+=======
+>>>>>>> feat(libflux/semantic): add more node cases to semantic graph flatbuffers serialization
 
 table BooleanLiteral {
   loc:SourceLocation;
