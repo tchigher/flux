@@ -147,22 +147,22 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 v.expr_stack.push((boolean.as_union_value(), fbsemantic::Expression::BooleanLiteral))
             }
 
-            walk::Node::Identifier(id) => {
+            walk::Node::IdentifierExpr(id) => {
                 let name = v.create_string(&id.name); 
-                let boolean =  fbsemantic::Identifier::create(
+                let boolean =  fbsemantic::IdentifierExpression::create(
                     &mut v.builder, 
-                    &fbsemantic::IdentifierArgs {
+                    &fbsemantic::IdentifierExpressionArgs {
                         loc, 
                         name, 
                     }
                 ); 
-                v.expr_stack.push((boolean.as_union_value(), fbsemantic::Expression::Identifier))
+                v.expr_stack.push((boolean.as_union_value(), fbsemantic::Expression::IdentifierExpression)); 
             }
 
             walk::Node::Property(prop) => {
                 // the value for a property is always an expression
                 let (value, value_type) = v.pop_expr();
-                let key = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let key = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                 let prop = fbsemantic::Property::create(
                     &mut v.builder,
                     &fbsemantic::PropertyArgs {
@@ -192,7 +192,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             walk::Node::ObjectExpr(obj) => {
                 let with = match obj.with {
                     None => None, 
-                    Some(_) => v.pop_expr_with_kind(fbsemantic::Expression::Identifier), 
+                    Some(_) => v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression), 
                 }; 
 
                 let properties = {
@@ -333,7 +333,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 let mut param_list: Vec<WIPOffset<fbsemantic::FunctionParameter>> =
                     Vec::with_capacity(func.params.len()); 
                 for param in func.params {
-                    let key = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                    let key = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                     let (default, default_type) = v.pop_expr(); 
                     let func_param = fbsemantic::FunctionParameter::create(
                         &mut v.builder, 
@@ -361,7 +361,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 v.expr_stack.push((func.as_union_value(), fbsemantic::Expression::FunctionExpression)); 
             }
             walk::Node::FunctionParameter(func_param) => {
-                let key = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let key = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                 let (default, default_type) = v.pop_expr(); 
                 let func_param = fbsemantic::FunctionParameter::create(
                     &mut v.builder, 
@@ -434,7 +434,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
             walk::Node::VariableAssgn(native) => {
                 let (init_, init__type) = v.pop_expr(); 
-                let identifier = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let identifier = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                 let native = fbsemantic::NativeVariableAssignment::create(
                     &mut v.builder, 
                     &fbsemantic::NativeVariableAssignmentArgs {
@@ -473,7 +473,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             walk::Node::TestStmt(_) => {
                 let (assignment, assignment_type) = v.pop_assignment_stmt();
                 let native = {
-                    let identifier = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                    let identifier = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                     let (init_, init__type) = v.pop_expr();
                     Some(fbsemantic::NativeVariableAssignment::create(
                         &mut v.builder, 
@@ -496,7 +496,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     .push((test.as_union_value(), fbsemantic::Statement::TestStatement));
             }
             walk::Node::BuiltinStmt(_) => {
-                let id = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let id = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                 let builtin = fbsemantic::BuiltinStatement::create(
                     &mut v.builder, 
                     &fbsemantic::BuiltinStatementArgs {
@@ -506,7 +506,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 );
                 v.stmts.push((builtin.as_union_value(), fbsemantic::Statement::BuiltinStatement)); 
             } 
-
             walk::Node::OptionStmt(_) => {
                 let (assignment, assignment_type) = v.pop_assignment_stmt(); 
                 let opt = fbsemantic::OptionStatement::create(
@@ -518,35 +517,67 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     },
                 );
             }
-            // walk::Node::Block(block) => {
-            //     // block.body
-            //     let mut current = block; 
-            //     while true {
-            //         match current {
-            //             semantic::nodes::Block::Expr => {
-            //                 let expr = fbsemantic::ExpressionStatement::create(
-            //                     &mut v.builder, 
-            //                     &fbsemantic::ExpressionStatementArgs {
-            //                         loc, 
-            //                         expression, 
-            //                         expression_type
-            //                     },
-            //                 ); 
-            //             }
-            //             // exprstmt
-            //             //
-            //         }
-            //     }
-            //     let block = fbsemantic::Block::create(
-            //         &mut v.builder, 
-            //         &fbsemantic::BlockArgs {
-
-            //         }
-            //     )
-            // }
+            walk::Node::Block(block) => {
+                let mut block_len = 0; 
+                let mut current = block; 
+                loop {
+                    block_len += 1;
+                    match current {
+                        semantic::nodes::Block::Expr(_, next) => {
+                            let (expression, expression_type) = v.pop_expr();
+                            let expr = fbsemantic::ExpressionStatement::create(
+                                &mut v.builder, 
+                                &fbsemantic::ExpressionStatementArgs {
+                                    loc, 
+                                    expression, 
+                                    expression_type
+                                },
+                            ); 
+                            current = next.as_ref(); 
+                        }
+                        semantic::nodes::Block::Variable(_, next) => {
+                            let (init_, init__type) = v.pop_expr(); 
+                            let identifier = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
+                            let native = fbsemantic::NativeVariableAssignment::create(
+                                &mut v.builder, 
+                                &fbsemantic::NativeVariableAssignmentArgs {
+                                    loc, 
+                                    identifier, 
+                                    init__type, 
+                                    init_, 
+                                }, 
+                            );
+                            current = next.as_ref(); 
+                        }
+                        semantic::nodes::Block::Return(retn) => {
+                            let (argument, argument_type) = v.pop_expr(); 
+                            let return_st = fbsemantic::ReturnStatement::create(
+                                &mut v.builder, 
+                                &fbsemantic::ReturnStatementArgs {
+                                    loc, 
+                                    argument, 
+                                    argument_type
+                                },
+                            ); 
+                            break; 
+                        }
+                    }
+                }
+                let body = {
+                    let stmt_vec = v.create_stmt_vector(block_len); 
+                    Some(v.builder.create_vector(&stmt_vec.as_slice()))
+                }; 
+                let block = fbsemantic::Block::create(
+                    &mut v.builder, 
+                    &fbsemantic::BlockArgs {
+                        loc, 
+                        body, 
+                    }, 
+                ); 
+            }
             walk::Node::ImportDeclaration(_) => {
                 let path = v.pop_expr_with_kind(fbsemantic::Expression::StringLiteral); 
-                let alias = Some(v.pop_expr_with_kind(fbsemantic::Expression::Identifier)); 
+                let alias = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
                 let import = fbsemantic::ImportDeclaration::create(
                     &mut v.builder, 
                     &fbsemantic::ImportDeclarationArgs {
@@ -558,7 +589,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 v.import_decls.push(import); 
             }
             walk::Node::PackageClause(_) => {
-                let name = v.pop_expr_with_kind(fbsemantic::Expression::Identifier);
+                let name = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression);
                 let pc = fbsemantic::PackageClause::create(
                     &mut v.builder, 
                     &fbsemantic::PackageClauseArgs {
