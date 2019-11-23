@@ -11,7 +11,7 @@ const (
 	ExpressionBinaryExpression Expression = 4
 	ExpressionCallExpression Expression = 5
 	ExpressionConditionalExpression Expression = 6
-	ExpressionIdentifier Expression = 7
+	ExpressionIdentifierExpression Expression = 7
 	ExpressionLogicalExpression Expression = 8
 	ExpressionMemberExpression Expression = 9
 	ExpressionIndexExpression Expression = 10
@@ -35,7 +35,7 @@ var EnumNamesExpression = map[Expression]string{
 	ExpressionBinaryExpression:"BinaryExpression",
 	ExpressionCallExpression:"CallExpression",
 	ExpressionConditionalExpression:"ConditionalExpression",
-	ExpressionIdentifier:"Identifier",
+	ExpressionIdentifierExpression:"IdentifierExpression",
 	ExpressionLogicalExpression:"LogicalExpression",
 	ExpressionMemberExpression:"MemberExpression",
 	ExpressionIndexExpression:"IndexExpression",

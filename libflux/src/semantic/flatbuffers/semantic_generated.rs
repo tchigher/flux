@@ -394,7 +394,7 @@ pub enum Expression {
   BinaryExpression = 4,
   CallExpression = 5,
   ConditionalExpression = 6,
-  Identifier = 7,
+  IdentifierExpression = 7,
   LogicalExpression = 8,
   MemberExpression = 9,
   IndexExpression = 10,
@@ -454,7 +454,7 @@ const ENUM_VALUES_EXPRESSION:[Expression; 21] = [
   Expression::BinaryExpression,
   Expression::CallExpression,
   Expression::ConditionalExpression,
-  Expression::Identifier,
+  Expression::IdentifierExpression,
   Expression::LogicalExpression,
   Expression::MemberExpression,
   Expression::IndexExpression,
@@ -479,7 +479,7 @@ const ENUM_NAMES_EXPRESSION:[&'static str; 21] = [
     "BinaryExpression",
     "CallExpression",
     "ConditionalExpression",
-    "Identifier",
+    "IdentifierExpression",
     "LogicalExpression",
     "MemberExpression",
     "IndexExpression",
@@ -3092,9 +3092,9 @@ impl<'a> ExpressionStatement<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn expression_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.expression_type() == Expression::Identifier {
-      self.expression().map(|u| Identifier::init_from_table(u))
+  pub fn expression_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.expression_type() == Expression::IdentifierExpression {
+      self.expression().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -3392,9 +3392,9 @@ impl<'a> ReturnStatement<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn argument_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.argument_type() == Expression::Identifier {
-      self.argument().map(|u| Identifier::init_from_table(u))
+  pub fn argument_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.argument_type() == Expression::IdentifierExpression {
+      self.argument().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -3710,9 +3710,9 @@ impl<'a> NativeVariableAssignment<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn init__as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.init__type() == Expression::Identifier {
-      self.init_().map(|u| Identifier::init_from_table(u))
+  pub fn init__as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.init__type() == Expression::IdentifierExpression {
+      self.init_().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -4084,9 +4084,9 @@ impl<'a> MemberAssignment<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn init__as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.init__type() == Expression::Identifier {
-      self.init_().map(|u| Identifier::init_from_table(u))
+  pub fn init__as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.init__type() == Expression::IdentifierExpression {
+      self.init_().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -4384,9 +4384,9 @@ impl<'a> WrappedExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn expression_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.expression_type() == Expression::Identifier {
-      self.expression().map(|u| Identifier::init_from_table(u))
+  pub fn expression_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.expression_type() == Expression::IdentifierExpression {
+      self.expression().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -4846,9 +4846,9 @@ impl<'a> StringExpressionPart<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn interpolated_expression_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.interpolated_expression_type() == Expression::Identifier {
-      self.interpolated_expression().map(|u| Identifier::init_from_table(u))
+  pub fn interpolated_expression_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.interpolated_expression_type() == Expression::IdentifierExpression {
+      self.interpolated_expression().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -5842,9 +5842,9 @@ impl<'a> BinaryExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn left_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.left_type() == Expression::Identifier {
-      self.left().map(|u| Identifier::init_from_table(u))
+  pub fn left_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.left_type() == Expression::IdentifierExpression {
+      self.left().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -6042,9 +6042,9 @@ impl<'a> BinaryExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn right_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.right_type() == Expression::Identifier {
-      self.right().map(|u| Identifier::init_from_table(u))
+  pub fn right_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.right_type() == Expression::IdentifierExpression {
+      self.right().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -6452,9 +6452,9 @@ impl<'a> CallExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn callee_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.callee_type() == Expression::Identifier {
-      self.callee().map(|u| Identifier::init_from_table(u))
+  pub fn callee_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.callee_type() == Expression::IdentifierExpression {
+      self.callee().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -6652,9 +6652,9 @@ impl<'a> CallExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn pipe_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.pipe_type() == Expression::Identifier {
-      self.pipe().map(|u| Identifier::init_from_table(u))
+  pub fn pipe_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.pipe_type() == Expression::IdentifierExpression {
+      self.pipe().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -7068,9 +7068,9 @@ impl<'a> ConditionalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.test_type() == Expression::Identifier {
-      self.test().map(|u| Identifier::init_from_table(u))
+  pub fn test_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.test_type() == Expression::IdentifierExpression {
+      self.test().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -7268,9 +7268,9 @@ impl<'a> ConditionalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn alternate_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.alternate_type() == Expression::Identifier {
-      self.alternate().map(|u| Identifier::init_from_table(u))
+  pub fn alternate_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.alternate_type() == Expression::IdentifierExpression {
+      self.alternate().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -7468,9 +7468,9 @@ impl<'a> ConditionalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn consequent_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.consequent_type() == Expression::Identifier {
-      self.consequent().map(|u| Identifier::init_from_table(u))
+  pub fn consequent_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.consequent_type() == Expression::IdentifierExpression {
+      self.consequent().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -7884,9 +7884,9 @@ impl<'a> LogicalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn left_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.left_type() == Expression::Identifier {
-      self.left().map(|u| Identifier::init_from_table(u))
+  pub fn left_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.left_type() == Expression::IdentifierExpression {
+      self.left().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -8084,9 +8084,9 @@ impl<'a> LogicalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn right_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.right_type() == Expression::Identifier {
-      self.right().map(|u| Identifier::init_from_table(u))
+  pub fn right_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.right_type() == Expression::IdentifierExpression {
+      self.right().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -8482,9 +8482,9 @@ impl<'a> MemberExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn object_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.object_type() == Expression::Identifier {
-      self.object().map(|u| Identifier::init_from_table(u))
+  pub fn object_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.object_type() == Expression::IdentifierExpression {
+      self.object().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -8874,9 +8874,9 @@ impl<'a> IndexExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn array_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.array_type() == Expression::Identifier {
-      self.array().map(|u| Identifier::init_from_table(u))
+  pub fn array_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.array_type() == Expression::IdentifierExpression {
+      self.array().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -9074,9 +9074,9 @@ impl<'a> IndexExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn index_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.index_type() == Expression::Identifier {
-      self.index().map(|u| Identifier::init_from_table(u))
+  pub fn index_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.index_type() == Expression::IdentifierExpression {
+      self.index().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -9383,8 +9383,8 @@ impl<'a> ObjectExpression<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<SourceLocation<'a>>>(ObjectExpression::VT_LOC, None)
   }
   #[inline]
-  pub fn with(&self) -> Option<Identifier<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<Identifier<'a>>>(ObjectExpression::VT_WITH, None)
+  pub fn with(&self) -> Option<IdentifierExpression<'a>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<IdentifierExpression<'a>>>(ObjectExpression::VT_WITH, None)
   }
   #[inline]
   pub fn properties(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Property<'a>>>> {
@@ -9452,7 +9452,7 @@ impl<'a> ObjectExpression<'a> {
 
 pub struct ObjectExpressionArgs<'a> {
     pub loc: Option<flatbuffers::WIPOffset<SourceLocation<'a >>>,
-    pub with: Option<flatbuffers::WIPOffset<Identifier<'a >>>,
+    pub with: Option<flatbuffers::WIPOffset<IdentifierExpression<'a >>>,
     pub properties: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Property<'a >>>>>,
     pub typ_type: MonoType,
     pub typ: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
@@ -9479,8 +9479,8 @@ impl<'a: 'b, 'b> ObjectExpressionBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<SourceLocation>>(ObjectExpression::VT_LOC, loc);
   }
   #[inline]
-  pub fn add_with(&mut self, with: flatbuffers::WIPOffset<Identifier<'b >>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<Identifier>>(ObjectExpression::VT_WITH, with);
+  pub fn add_with(&mut self, with: flatbuffers::WIPOffset<IdentifierExpression<'b >>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<IdentifierExpression>>(ObjectExpression::VT_WITH, with);
   }
   #[inline]
   pub fn add_properties(&mut self, properties: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Property<'b >>>>) {
@@ -9640,9 +9640,9 @@ impl<'a> UnaryExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn argument_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.argument_type() == Expression::Identifier {
-      self.argument().map(|u| Identifier::init_from_table(u))
+  pub fn argument_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.argument_type() == Expression::IdentifierExpression {
+      self.argument().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -10014,9 +10014,9 @@ impl<'a> Property<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn value_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.value_type() == Expression::Identifier {
-      self.value().map(|u| Identifier::init_from_table(u))
+  pub fn value_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
+    if self.value_type() == Expression::IdentifierExpression {
+      self.value().map(|u| IdentifierExpression::init_from_table(u))
     } else {
       None
     }
@@ -10207,15 +10207,15 @@ impl<'a: 'b, 'b> PropertyBuilder<'a, 'b> {
   }
 }
 
-pub enum IdentifierOffset {}
+pub enum IdentifierExpressionOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
-pub struct Identifier<'a> {
+pub struct IdentifierExpression<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Identifier<'a> {
-    type Inner = Identifier<'a>;
+impl<'a> flatbuffers::Follow<'a> for IdentifierExpression<'a> {
+    type Inner = IdentifierExpression<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Self {
@@ -10224,16 +10224,17 @@ impl<'a> flatbuffers::Follow<'a> for Identifier<'a> {
     }
 }
 
-impl<'a> Identifier<'a> {
+impl<'a> IdentifierExpression<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Identifier {
+        IdentifierExpression {
             _tab: table,
         }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+<<<<<<< HEAD
 <<<<<<< HEAD
         args: &'args IdentifierExpressionArgs<'args>) -> flatbuffers::WIPOffset<IdentifierExpression<'bldr>> {
       let mut builder = IdentifierExpressionBuilder::new(_fbb);
@@ -10407,6 +10408,10 @@ impl<'a> Identifier<'a> {
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
         args: &'args IdentifierArgs<'args>) -> flatbuffers::WIPOffset<Identifier<'bldr>> {
       let mut builder = IdentifierBuilder::new(_fbb);
+=======
+        args: &'args IdentifierExpressionArgs<'args>) -> flatbuffers::WIPOffset<IdentifierExpression<'bldr>> {
+      let mut builder = IdentifierExpressionBuilder::new(_fbb);
+>>>>>>> fix(libflux/semantic): regenerate files that were incorrect
       if let Some(x) = args.name { builder.add_name(x); }
       if let Some(x) = args.loc { builder.add_loc(x); }
       builder.finish()
@@ -10417,50 +10422,50 @@ impl<'a> Identifier<'a> {
 
   #[inline]
   pub fn loc(&self) -> Option<SourceLocation<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<SourceLocation<'a>>>(Identifier::VT_LOC, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<SourceLocation<'a>>>(IdentifierExpression::VT_LOC, None)
   }
   #[inline]
   pub fn name(&self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Identifier::VT_NAME, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(IdentifierExpression::VT_NAME, None)
   }
 }
 
-pub struct IdentifierArgs<'a> {
+pub struct IdentifierExpressionArgs<'a> {
     pub loc: Option<flatbuffers::WIPOffset<SourceLocation<'a >>>,
     pub name: Option<flatbuffers::WIPOffset<&'a  str>>,
 }
-impl<'a> Default for IdentifierArgs<'a> {
+impl<'a> Default for IdentifierExpressionArgs<'a> {
     #[inline]
     fn default() -> Self {
-        IdentifierArgs {
+        IdentifierExpressionArgs {
             loc: None,
             name: None,
         }
     }
 }
-pub struct IdentifierBuilder<'a: 'b, 'b> {
+pub struct IdentifierExpressionBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> IdentifierBuilder<'a, 'b> {
+impl<'a: 'b, 'b> IdentifierExpressionBuilder<'a, 'b> {
   #[inline]
   pub fn add_loc(&mut self, loc: flatbuffers::WIPOffset<SourceLocation<'b >>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<SourceLocation>>(Identifier::VT_LOC, loc);
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<SourceLocation>>(IdentifierExpression::VT_LOC, loc);
   }
   #[inline]
   pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Identifier::VT_NAME, name);
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(IdentifierExpression::VT_NAME, name);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> IdentifierBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> IdentifierExpressionBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    IdentifierBuilder {
+    IdentifierExpressionBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Identifier<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<IdentifierExpression<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }

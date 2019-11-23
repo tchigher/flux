@@ -143,7 +143,7 @@ union Expression  {
     BinaryExpression,       
     CallExpression,         
     ConditionalExpression,  
-    Identifier,   
+    IdentifierExpression,   
     LogicalExpression,      
     MemberExpression,       
     IndexExpression,        
@@ -371,10 +371,12 @@ table ObjectExpression {
   typ:MonoType;
 =======
     loc:SourceLocation;
-    with:Identifier;
+    with:IdentifierExpression;
     properties:[Property];
 >>>>>>> feat(libflux/semantic): add more node cases to semantic graph flatbuffers serialization
 }
+
+
 
 table UnaryExpression {
   loc:SourceLocation;
@@ -390,6 +392,7 @@ table Property {
 }
 
 table IdentifierExpression {
+<<<<<<< HEAD
   loc:SourceLocation;
   name:string;
   typ:MonoType;
@@ -402,6 +405,11 @@ table Identifier {
 }
 =======
 >>>>>>> feat(libflux/semantic): add more node cases to semantic graph flatbuffers serialization
+=======
+    loc:SourceLocation;
+    name:string;
+}
+>>>>>>> fix(libflux/semantic): regenerate files that were incorrect
 
 table BooleanLiteral {
   loc:SourceLocation;
