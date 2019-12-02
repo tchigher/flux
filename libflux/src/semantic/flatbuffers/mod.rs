@@ -104,10 +104,39 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 ); 
                 v.expr_stack.push((string.as_union_value(), fbsemantic::Expression::StringLiteral))
             }
-            // walk::Node::DurationLit(dur_lit) => {
-            //     let mut dur_vec: Vec<WIPOffset<fbsemantic::Duration>> =
-            //         Vec::with_capacity(dur_lit.value); 
-            // }
+
+            walk::Node::DurationLit(dur_lit) => {
+                // let unit = match fb_duration(&dur_lit) {
+                //     Ok(unit) => unit, 
+                //     Err(s) => {
+                //         v.err = Some(s);
+                //         return;
+                //     }
+                // };
+                let magnitude = match dur_lit.value.num_nanoseconds() {
+                    Some(mag) => mag, 
+                    None => {
+                        v.err = Some(String::from("Empty duration value")); 
+                        return; 
+                    }
+                }; 
+                let value = Some(fbsemantic::Duration::create(
+                    &mut v.builder, 
+                    &fbsemantic::DurationArgs {
+                        magnitude, 
+                        unit: fbsemantic::TimeUnit::ns, 
+                    }
+                )); 
+                let dur_lit = fbsemantic::DurationLiteral::create(
+                    &mut v.builder,
+                    &fbsemantic::DurationLiteralArgs {
+                        loc, 
+                        value,  
+                        typ: dur_lit.typ, 
+                    },
+                );
+                v.expr_stack.push((dur_lit.as_union_value(), fbsemantic::Expression::DurationLiteral))
+            }
             
             walk::Node::DateTimeLit(datetime) => {
                 let val = datetime.value.to_rfc3339(); 
@@ -855,3 +884,22 @@ fn fb_logical_operator(lo: &ast::LogicalOperator) -> fbsemantic::LogicalOperator
         ast::LogicalOperator::OrOperator => fbsemantic::LogicalOperator::OrOperator,
     }
 }
+
+fn fb_duration(d: &String) -> Result<fbast::TimeUnit, String> {
+    match d.as_str() {
+        "y" => Ok(fbast::TimeUnit::y),
+        "mo" => Ok(fbast::TimeUnit::mo),
+        "w" => Ok(fbast::TimeUnit::w),
+        "d" => Ok(fbast::TimeUnit::d),
+        "h" => Ok(fbast::TimeUnit::h),
+        "m" => Ok(fbast::TimeUnit::m),
+        "s" => Ok(fbast::TimeUnit::s),
+        "ms" => Ok(fbast::TimeUnit::ms),
+        "us" => Ok(fbast::TimeUnit::us),
+        "ns" => Ok(fbast::TimeUnit::ns),
+        s => Err(String::from(format!("unknown time unit {}", s))),
+    }
+}
+
+#[cfg(test)]
+mod tests; 

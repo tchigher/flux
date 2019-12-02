@@ -3,25 +3,25 @@
 package fbsemantic
 
 type Statement = byte
+
 const (
-	StatementNONE Statement = 0
-	StatementOptionStatement Statement = 1
-	StatementBuiltinStatement Statement = 2
-	StatementTestStatement Statement = 3
-	StatementExpressionStatement Statement = 4
-	StatementReturnStatement Statement = 5
+	StatementNONE                     Statement = 0
+	StatementOptionStatement          Statement = 1
+	StatementBuiltinStatement         Statement = 2
+	StatementTestStatement            Statement = 3
+	StatementExpressionStatement      Statement = 4
+	StatementReturnStatement          Statement = 5
 	StatementNativeVariableAssignment Statement = 6
-	StatementMemberAssignment Statement = 7
+	StatementMemberAssignment         Statement = 7
 )
 
 var EnumNamesStatement = map[Statement]string{
-	StatementNONE:"NONE",
-	StatementOptionStatement:"OptionStatement",
-	StatementBuiltinStatement:"BuiltinStatement",
-	StatementTestStatement:"TestStatement",
-	StatementExpressionStatement:"ExpressionStatement",
-	StatementReturnStatement:"ReturnStatement",
-	StatementNativeVariableAssignment:"NativeVariableAssignment",
-	StatementMemberAssignment:"MemberAssignment",
+	StatementNONE:                     "NONE",
+	StatementOptionStatement:          "OptionStatement",
+	StatementBuiltinStatement:         "BuiltinStatement",
+	StatementTestStatement:            "TestStatement",
+	StatementExpressionStatement:      "ExpressionStatement",
+	StatementReturnStatement:          "ReturnStatement",
+	StatementNativeVariableAssignment: "NativeVariableAssignment",
+	StatementMemberAssignment:         "MemberAssignment",
 }
-
