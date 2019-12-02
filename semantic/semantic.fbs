@@ -338,8 +338,6 @@ table ObjectExpression {
     properties:[Property];
 }
 
-
-
 table UnaryExpression {
   loc:SourceLocation;
   operator:Operator;
@@ -385,7 +383,7 @@ table Time {
 
 table DurationLiteral {
   loc:SourceLocation;
-  value:[Duration];
+  value:Duration;
   typ:MonoType;
 }
 

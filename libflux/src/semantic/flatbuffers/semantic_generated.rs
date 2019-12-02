@@ -10853,8 +10853,8 @@ impl<'a> DurationLiteral<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<SourceLocation<'a>>>(DurationLiteral::VT_LOC, None)
   }
   #[inline]
-  pub fn value(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Duration<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Duration<'a>>>>>(DurationLiteral::VT_VALUE, None)
+  pub fn value(&self) -> Option<Duration<'a>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<Duration<'a>>>(DurationLiteral::VT_VALUE, None)
   }
   #[inline]
   pub fn typ_type(&self) -> MonoType {
@@ -10918,7 +10918,7 @@ impl<'a> DurationLiteral<'a> {
 
 pub struct DurationLiteralArgs<'a> {
     pub loc: Option<flatbuffers::WIPOffset<SourceLocation<'a >>>,
-    pub value: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Duration<'a >>>>>,
+    pub value: Option<flatbuffers::WIPOffset<Duration<'a >>>,
     pub typ_type: MonoType,
     pub typ: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
@@ -10943,8 +10943,8 @@ impl<'a: 'b, 'b> DurationLiteralBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<SourceLocation>>(DurationLiteral::VT_LOC, loc);
   }
   #[inline]
-  pub fn add_value(&mut self, value: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Duration<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(DurationLiteral::VT_VALUE, value);
+  pub fn add_value(&mut self, value: flatbuffers::WIPOffset<Duration<'b >>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<Duration>>(DurationLiteral::VT_VALUE, value);
   }
   #[inline]
   pub fn add_typ_type(&mut self, typ_type: MonoType) {

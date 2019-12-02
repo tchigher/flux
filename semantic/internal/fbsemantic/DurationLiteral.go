@@ -39,24 +39,17 @@ func (rcv *DurationLiteral) Loc(obj *SourceLocation) *SourceLocation {
 	return nil
 }
 
-func (rcv *DurationLiteral) Value(obj *Duration, j int) bool {
+func (rcv *DurationLiteral) Value(obj *Duration) *Duration {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(Duration)
+		}
 		obj.Init(rcv._tab.Bytes, x)
-		return true
+		return obj
 	}
-	return false
-}
-
-func (rcv *DurationLiteral) ValueLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
+	return nil
 }
 
 func (rcv *DurationLiteral) TypType() byte {
@@ -88,9 +81,6 @@ func DurationLiteralAddLoc(builder *flatbuffers.Builder, loc flatbuffers.UOffset
 }
 func DurationLiteralAddValue(builder *flatbuffers.Builder, value flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(value), 0)
-}
-func DurationLiteralStartValueVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
 }
 func DurationLiteralAddTypType(builder *flatbuffers.Builder, typType byte) {
 	builder.PrependByteSlot(2, typType, 0)
