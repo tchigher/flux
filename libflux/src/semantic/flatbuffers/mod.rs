@@ -15,12 +15,12 @@ extern crate chrono;
 use chrono::Offset; 
 
 pub fn serialize(semantic_pkg: &mut semantic::nodes::Package) -> Result<(Vec<u8>, usize), String> {    
-    let v = new_serializing_visitor_with_capacity(1024);
+    let mut v = new_serializing_visitor_with_capacity(1024);
     walk::walk(&mut v, Rc::new(walk::Node::Package(semantic_pkg)));
     v.finish()
 }
 
-fn new_serializing_visitor_with_capacity<'a>(capacity: usize) -> SerializingVisitor<'a> {
+fn new_serializing_visitor_with_capacity<'a>(_capacity: usize) -> SerializingVisitor<'a> {
     SerializingVisitor {
         inner: Rc::new(RefCell::new(SerializingVisitorState::new_with_capacity(
             1024,
@@ -349,7 +349,34 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 }
                 let params = Some(v.builder.create_vector(param_list.as_slice())); 
 
-                let defaults = v.pop_expr_with_kind(fbsemantic::Expression::ObjectExpression); 
+                let mut block_len = 0; 
+                let mut current = &func.body; 
+                loop {
+                    block_len += 1;
+                    match current {
+                        semantic::nodes::Block::Expr(_, next) => {
+                            current = next.as_ref(); 
+                        }
+                        semantic::nodes::Block::Variable(_, next) => {
+                            current = next.as_ref(); 
+                        }
+                        semantic::nodes::Block::Return(retn) => {
+                            break; 
+                        }
+                    }
+                }
+                let body_vec = {
+                    let stmt_vec = v.create_stmt_vector(block_len); 
+                    Some(v.builder.create_vector(&stmt_vec.as_slice()))
+                }; 
+                let body = Some(fbsemantic::Block::create(
+                    &mut v.builder, 
+                    &fbsemantic::BlockArgs {
+                        loc, 
+                        body: body_vec, 
+                    }, 
+                )); 
+
                 let func = fbsemantic::FunctionExpression::create(
                     &mut v.builder, 
                     &fbsemantic::FunctionExpressionArgs {
@@ -524,41 +551,12 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     block_len += 1;
                     match current {
                         semantic::nodes::Block::Expr(_, next) => {
-                            let (expression, expression_type) = v.pop_expr();
-                            let expr = fbsemantic::ExpressionStatement::create(
-                                &mut v.builder, 
-                                &fbsemantic::ExpressionStatementArgs {
-                                    loc, 
-                                    expression, 
-                                    expression_type
-                                },
-                            ); 
                             current = next.as_ref(); 
                         }
                         semantic::nodes::Block::Variable(_, next) => {
-                            let (init_, init__type) = v.pop_expr(); 
-                            let identifier = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
-                            let native = fbsemantic::NativeVariableAssignment::create(
-                                &mut v.builder, 
-                                &fbsemantic::NativeVariableAssignmentArgs {
-                                    loc, 
-                                    identifier, 
-                                    init__type, 
-                                    init_, 
-                                }, 
-                            );
                             current = next.as_ref(); 
                         }
                         semantic::nodes::Block::Return(retn) => {
-                            let (argument, argument_type) = v.pop_expr(); 
-                            let return_st = fbsemantic::ReturnStatement::create(
-                                &mut v.builder, 
-                                &fbsemantic::ReturnStatementArgs {
-                                    loc, 
-                                    argument, 
-                                    argument_type
-                                },
-                            ); 
                             break; 
                         }
                     }
@@ -599,9 +597,61 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 ); 
                 v.package_clause = Some(pc); 
             }
-            // walk::Node::File(file) => {
-            //     file.
-            // }
+            walk::Node::File(file) => {
+                let package = v.package_clause; 
+                let imports: Vec<WIPOffset<fbsemantic::ImportDeclaration<'a>>> = 
+                    Vec::with_capacity(file.imports.len()); 
+                for import in file.imports {
+                    let path = v.pop_expr_with_kind(fbsemantic::Expression::StringLiteral); 
+                    let alias = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
+                    let dec = fbsemantic::ImportDeclaration::create(
+                        &mut v.builder, 
+                        &fbsemantic::ImportDeclarationArgs {
+                            loc, 
+                            alias, 
+                            path,
+                        }, 
+                    );
+                    imports.push(dec);
+                };
+                let mut block_len = 0; 
+                let mut current = &file.body; 
+                loop {
+                    block_len += 1;
+                    match current {
+                        semantic::nodes::Block::Expr(_, next) => {
+                            current = next.as_ref(); 
+                        }
+                        semantic::nodes::Block::Variable(_, next) => {
+                            current = next.as_ref(); 
+                        }
+                        semantic::nodes::Block::Return(retn) => {
+                            break; 
+                        }
+                    }
+                }
+                let body_vec = {
+                    let stmt_vec = v.create_stmt_vector(block_len); 
+                    Some(v.builder.create_vector(&stmt_vec.as_slice()))
+                }; 
+                let body = Some(fbsemantic::Block::create(
+                    &mut v.builder, 
+                    &fbsemantic::BlockArgs {
+                        loc, 
+                        body: body_vec, 
+                    }, 
+                )); 
+                
+                let file = fbsemantic::File::create(
+                    &mut v.builder, 
+                    &fbsemantic::FileArgs {
+                        loc, 
+                        package, 
+                        imports, 
+                        body, 
+                    }, 
+                ); 
+            }
         }
     }
 }
