@@ -12,20 +12,21 @@ const (
 	ExpressionBinaryExpression       Expression = 4
 	ExpressionCallExpression         Expression = 5
 	ExpressionConditionalExpression  Expression = 6
-	ExpressionIdentifierExpression   Expression = 7
-	ExpressionLogicalExpression      Expression = 8
-	ExpressionMemberExpression       Expression = 9
-	ExpressionIndexExpression        Expression = 10
-	ExpressionObjectExpression       Expression = 11
-	ExpressionUnaryExpression        Expression = 12
-	ExpressionBooleanLiteral         Expression = 13
-	ExpressionDateTimeLiteral        Expression = 14
-	ExpressionDurationLiteral        Expression = 15
-	ExpressionFloatLiteral           Expression = 16
-	ExpressionIntegerLiteral         Expression = 17
-	ExpressionStringLiteral          Expression = 18
-	ExpressionRegexpLiteral          Expression = 19
-	ExpressionUnsignedIntegerLiteral Expression = 20
+	ExpressionIdentifier             Expression = 7
+	ExpressionIdentifierExpression   Expression = 8
+	ExpressionLogicalExpression      Expression = 9
+	ExpressionMemberExpression       Expression = 10
+	ExpressionIndexExpression        Expression = 11
+	ExpressionObjectExpression       Expression = 12
+	ExpressionUnaryExpression        Expression = 13
+	ExpressionBooleanLiteral         Expression = 14
+	ExpressionDateTimeLiteral        Expression = 15
+	ExpressionDurationLiteral        Expression = 16
+	ExpressionFloatLiteral           Expression = 17
+	ExpressionIntegerLiteral         Expression = 18
+	ExpressionStringLiteral          Expression = 19
+	ExpressionRegexpLiteral          Expression = 20
+	ExpressionUnsignedIntegerLiteral Expression = 21
 )
 
 var EnumNamesExpression = map[Expression]string{
@@ -36,6 +37,7 @@ var EnumNamesExpression = map[Expression]string{
 	ExpressionBinaryExpression:       "BinaryExpression",
 	ExpressionCallExpression:         "CallExpression",
 	ExpressionConditionalExpression:  "ConditionalExpression",
+	ExpressionIdentifier:             "Identifier",
 	ExpressionIdentifierExpression:   "IdentifierExpression",
 	ExpressionLogicalExpression:      "LogicalExpression",
 	ExpressionMemberExpression:       "MemberExpression",

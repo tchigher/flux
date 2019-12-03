@@ -394,26 +394,25 @@ pub enum Expression {
   BinaryExpression = 4,
   CallExpression = 5,
   ConditionalExpression = 6,
-  Identifier = 7,
-  IdentifierExpression = 8,
-  LogicalExpression = 9,
-  MemberExpression = 10,
-  IndexExpression = 11,
-  ObjectExpression = 12,
-  UnaryExpression = 13,
-  BooleanLiteral = 14,
-  DateTimeLiteral = 15,
-  DurationLiteral = 16,
-  FloatLiteral = 17,
-  IntegerLiteral = 18,
-  StringLiteral = 19,
-  RegexpLiteral = 20,
-  UnsignedIntegerLiteral = 21,
+  IdentifierExpression = 7,
+  LogicalExpression = 8,
+  MemberExpression = 9,
+  IndexExpression = 10,
+  ObjectExpression = 11,
+  UnaryExpression = 12,
+  BooleanLiteral = 13,
+  DateTimeLiteral = 14,
+  DurationLiteral = 15,
+  FloatLiteral = 16,
+  IntegerLiteral = 17,
+  StringLiteral = 18,
+  RegexpLiteral = 19,
+  UnsignedIntegerLiteral = 20,
 
 }
 
 const ENUM_MIN_EXPRESSION: u8 = 0;
-const ENUM_MAX_EXPRESSION: u8 = 21;
+const ENUM_MAX_EXPRESSION: u8 = 20;
 
 impl<'a> flatbuffers::Follow<'a> for Expression {
   type Inner = Self;
@@ -447,7 +446,7 @@ impl flatbuffers::Push for Expression {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_EXPRESSION:[Expression; 22] = [
+const ENUM_VALUES_EXPRESSION:[Expression; 21] = [
   Expression::NONE,
   Expression::StringExpression,
   Expression::ArrayExpression,
@@ -455,7 +454,6 @@ const ENUM_VALUES_EXPRESSION:[Expression; 22] = [
   Expression::BinaryExpression,
   Expression::CallExpression,
   Expression::ConditionalExpression,
-  Expression::Identifier,
   Expression::IdentifierExpression,
   Expression::LogicalExpression,
   Expression::MemberExpression,
@@ -473,7 +471,7 @@ const ENUM_VALUES_EXPRESSION:[Expression; 22] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_EXPRESSION:[&'static str; 22] = [
+const ENUM_NAMES_EXPRESSION:[&'static str; 21] = [
     "NONE",
     "StringExpression",
     "ArrayExpression",
@@ -481,7 +479,6 @@ const ENUM_NAMES_EXPRESSION:[&'static str; 22] = [
     "BinaryExpression",
     "CallExpression",
     "ConditionalExpression",
-    "Identifier",
     "IdentifierExpression",
     "LogicalExpression",
     "MemberExpression",
@@ -3095,16 +3092,6 @@ impl<'a> ExpressionStatement<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn expression_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.expression_type() == Expression::Identifier {
-      self.expression().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn expression_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.expression_type() == Expression::IdentifierExpression {
       self.expression().map(|u| IdentifierExpression::init_from_table(u))
@@ -3398,16 +3385,6 @@ impl<'a> ReturnStatement<'a> {
   pub fn argument_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.argument_type() == Expression::ConditionalExpression {
       self.argument().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn argument_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.argument_type() == Expression::Identifier {
-      self.argument().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -3726,16 +3703,6 @@ impl<'a> NativeVariableAssignment<'a> {
   pub fn init__as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.init__type() == Expression::ConditionalExpression {
       self.init_().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn init__as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.init__type() == Expression::Identifier {
-      self.init_().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -4117,16 +4084,6 @@ impl<'a> MemberAssignment<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn init__as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.init__type() == Expression::Identifier {
-      self.init_().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn init__as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.init__type() == Expression::IdentifierExpression {
       self.init_().map(|u| IdentifierExpression::init_from_table(u))
@@ -4420,16 +4377,6 @@ impl<'a> WrappedExpression<'a> {
   pub fn expression_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.expression_type() == Expression::ConditionalExpression {
       self.expression().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn expression_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.expression_type() == Expression::Identifier {
-      self.expression().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -4892,16 +4839,6 @@ impl<'a> StringExpressionPart<'a> {
   pub fn interpolated_expression_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.interpolated_expression_type() == Expression::ConditionalExpression {
       self.interpolated_expression().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn interpolated_expression_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.interpolated_expression_type() == Expression::Identifier {
-      self.interpolated_expression().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -5563,16 +5500,6 @@ impl<'a> FunctionParameter<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn default_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.default_type() == Expression::Identifier {
-      self.default().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn default_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.default_type() == Expression::IdentifierExpression {
       self.default().map(|u| IdentifierExpression::init_from_table(u))
@@ -5915,16 +5842,6 @@ impl<'a> BinaryExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn left_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.left_type() == Expression::Identifier {
-      self.left().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn left_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.left_type() == Expression::IdentifierExpression {
       self.left().map(|u| IdentifierExpression::init_from_table(u))
@@ -6118,16 +6035,6 @@ impl<'a> BinaryExpression<'a> {
   pub fn right_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.right_type() == Expression::ConditionalExpression {
       self.right().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn right_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.right_type() == Expression::Identifier {
-      self.right().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -6545,16 +6452,6 @@ impl<'a> CallExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn callee_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.callee_type() == Expression::Identifier {
-      self.callee().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn callee_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.callee_type() == Expression::IdentifierExpression {
       self.callee().map(|u| IdentifierExpression::init_from_table(u))
@@ -6748,16 +6645,6 @@ impl<'a> CallExpression<'a> {
   pub fn pipe_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.pipe_type() == Expression::ConditionalExpression {
       self.pipe().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn pipe_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.pipe_type() == Expression::Identifier {
-      self.pipe().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -7181,16 +7068,6 @@ impl<'a> ConditionalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn test_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.test_type() == Expression::Identifier {
-      self.test().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn test_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.test_type() == Expression::IdentifierExpression {
       self.test().map(|u| IdentifierExpression::init_from_table(u))
@@ -7391,16 +7268,6 @@ impl<'a> ConditionalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn alternate_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.alternate_type() == Expression::Identifier {
-      self.alternate().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn alternate_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.alternate_type() == Expression::IdentifierExpression {
       self.alternate().map(|u| IdentifierExpression::init_from_table(u))
@@ -7594,16 +7461,6 @@ impl<'a> ConditionalExpression<'a> {
   pub fn consequent_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.consequent_type() == Expression::ConditionalExpression {
       self.consequent().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn consequent_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.consequent_type() == Expression::Identifier {
-      self.consequent().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -8027,16 +7884,6 @@ impl<'a> LogicalExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn left_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.left_type() == Expression::Identifier {
-      self.left().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn left_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.left_type() == Expression::IdentifierExpression {
       self.left().map(|u| IdentifierExpression::init_from_table(u))
@@ -8230,16 +8077,6 @@ impl<'a> LogicalExpression<'a> {
   pub fn right_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.right_type() == Expression::ConditionalExpression {
       self.right().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn right_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.right_type() == Expression::Identifier {
-      self.right().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -8645,16 +8482,6 @@ impl<'a> MemberExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn object_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.object_type() == Expression::Identifier {
-      self.object().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn object_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.object_type() == Expression::IdentifierExpression {
       self.object().map(|u| IdentifierExpression::init_from_table(u))
@@ -9047,16 +8874,6 @@ impl<'a> IndexExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn array_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.array_type() == Expression::Identifier {
-      self.array().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn array_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.array_type() == Expression::IdentifierExpression {
       self.array().map(|u| IdentifierExpression::init_from_table(u))
@@ -9250,16 +9067,6 @@ impl<'a> IndexExpression<'a> {
   pub fn index_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.index_type() == Expression::ConditionalExpression {
       self.index().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn index_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.index_type() == Expression::Identifier {
-      self.index().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
@@ -9759,16 +9566,6 @@ impl<'a> UnaryExpression<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn argument_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.argument_type() == Expression::Identifier {
-      self.argument().map(|u| Identifier::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
   pub fn argument_as_identifier_expression(&self) -> Option<IdentifierExpression<'a>> {
     if self.argument_type() == Expression::IdentifierExpression {
       self.argument().map(|u| IdentifierExpression::init_from_table(u))
@@ -10136,16 +9933,6 @@ impl<'a> Property<'a> {
   pub fn value_as_conditional_expression(&self) -> Option<ConditionalExpression<'a>> {
     if self.value_type() == Expression::ConditionalExpression {
       self.value().map(|u| ConditionalExpression::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn value_as_identifier(&self) -> Option<Identifier<'a>> {
-    if self.value_type() == Expression::Identifier {
-      self.value().map(|u| Identifier::init_from_table(u))
     } else {
       None
     }
