@@ -358,7 +358,6 @@ table IdentifierExpression {
   typ:MonoType;
 }
 
-
 table Identifier {
   loc:SourceLocation;
   name:string;
