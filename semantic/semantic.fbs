@@ -113,7 +113,6 @@ union Expression  {
     BinaryExpression,       
     CallExpression,         
     ConditionalExpression,
-    Identifier,   
     IdentifierExpression,   
     LogicalExpression,      
     MemberExpression,       
@@ -298,7 +297,7 @@ table BinaryExpression {
 table CallExpression {
   loc:SourceLocation;
   callee:Expression;
-  arguments:ObjectExpression;
+  arguments:Property;
   pipe:Expression;
   typ:MonoType;
 }

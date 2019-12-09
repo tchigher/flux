@@ -60,12 +60,12 @@ func (rcv *CallExpression) Callee(obj *flatbuffers.Table) bool {
 	return false
 }
 
-func (rcv *CallExpression) Arguments(obj *ObjectExpression) *ObjectExpression {
+func (rcv *CallExpression) Arguments(obj *Property) *Property {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		x := rcv._tab.Indirect(o + rcv._tab.Pos)
 		if obj == nil {
-			obj = new(ObjectExpression)
+			obj = new(Property)
 		}
 		obj.Init(rcv._tab.Bytes, x)
 		return obj
