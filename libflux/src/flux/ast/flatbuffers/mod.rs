@@ -477,6 +477,7 @@ impl<'a> ast::walk::Visitor<'a> for SerializingVisitor<'a> {
                         base_node,
                         text_value,
                         ..fbast::StringExpressionPartArgs::default()
+                    }
                 );
                 v.string_expr_parts.push(sep);
             }

@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crate::ast; 
 
 use crate::semantic; 
-use crate::semantic::walk; 
+use crate::semantic::walk;  
 use semantic_generated::fbsemantic;
 use flatbuffers::{UnionWIPOffset, WIPOffset}; 
 
@@ -215,7 +215,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         name, 
                     }
                 ); 
-                v.expr_stack.push((identifier.as_union_value(), fbsemantic::Expression::Identifier))
+                v.identifiers.push(identifier.as_union_value())
             }
 
             walk::Node::Property(prop) => {
@@ -477,7 +477,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::FunctionParameter(func_param) => {
-                let key = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let key = v.pop_ident(); 
                 let (default, default_type) = v.pop_expr(); 
                 let func_param = fbsemantic::FunctionParameter::create(
                     &mut v.builder, 
@@ -561,11 +561,12 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     v.string_expr_parts.truncate(start);
                     Some(vec)
                 };
-                let (typ, typ_type) = v.pop_monotype(); 
+                let string_typ = string.typ; 
+                let (typ, typ_type) = types::build_type(&mut v.builder, string_typ); 
 
                 let string = fbsemantic::StringExpression::create(
                     &mut v.builder,
-                    &fbsemantic::StringExpressionArgs { loc, parts, typ, typ_type},
+                    &fbsemantic::StringExpressionArgs { loc, parts, typ: Some(typ), typ_type },
                 );
                 v.expr_stack
                     .push((string.as_union_value(), fbsemantic::Expression::StringExpression));
@@ -587,8 +588,9 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::VariableAssgn(native) => {
+                // let monotype = native.type_of(); 
                 let (init_, init__type) = v.pop_expr(); 
-                let identifier = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let identifier = v.pop_ident();  
                 let (typ, typ_type) = v.pop_monotype(); 
 
                 let native = fbsemantic::NativeVariableAssignment::create(
@@ -602,8 +604,9 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         typ_type,
                     }, 
                 );
+                let wip = typ.unwrap(); 
+                v.monotypes.push((wip, typ_type)); 
             }
-
             walk::Node::ReturnStmt(_) => {
                 let (argument, argument_type) = v.pop_expr(); 
                 let return_st = fbsemantic::ReturnStatement::create(
@@ -658,8 +661,8 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     .push((test.as_union_value(), fbsemantic::Statement::TestStatement));
             }
 
-            walk::Node::BuiltinStmt(_) => {
-                let id = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+            walk::Node::BuiltinStmt(builtin) => {
+                let id = v.pop_ident(); 
                 let builtin = fbsemantic::BuiltinStatement::create(
                     &mut v.builder, 
                     &fbsemantic::BuiltinStatementArgs {
@@ -716,7 +719,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
 
             walk::Node::ImportDeclaration(_) => {
                 let path = v.pop_expr_with_kind(fbsemantic::Expression::StringLiteral); 
-                let alias = v.pop_expr_with_kind(fbsemantic::Expression::Identifier); 
+                let alias = v.pop_ident(); 
                 let import = fbsemantic::ImportDeclaration::create(
                     &mut v.builder, 
                     &fbsemantic::ImportDeclarationArgs {
@@ -729,7 +732,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::PackageClause(_) => {
-                let name = v.pop_expr_with_kind(fbsemantic::Expression::Identifier);
+                let name = v.pop_ident(); 
                 let pc = fbsemantic::PackageClause::create(
                     &mut v.builder, 
                     &fbsemantic::PackageClauseArgs {
@@ -817,10 +820,11 @@ struct SerializingVisitorState<'a> {
     files: Vec<WIPOffset<fbsemantic::File<'a>>>,
     blocks: Vec<WIPOffset<fbsemantic::Block<'a>>>,
     stmts: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::Statement)>,
-    monotypes: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::MonoType)>,
+    // monotypes: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::MonoType)>,
 
     expr_stack: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::Expression)>,
     properties: Vec<WIPOffset<fbsemantic::Property<'a>>>,
+    identifiers: Vec<WIPOffset<UnionWIPOffset>>, 
     string_expr_parts: Vec<WIPOffset<fbsemantic::StringExpressionPart<'a>>>,
     member_assign: Option<WIPOffset<UnionWIPOffset>>,
 }
@@ -836,9 +840,10 @@ impl<'a> SerializingVisitorState<'a> {
             files: Vec::new(),
             blocks: Vec::new(),
             stmts: Vec::new(),
-            monotypes: Vec::new(), 
+            // monotypes: Vec::new(), 
             expr_stack: Vec::new(),
             properties: Vec::new(),
+            identifiers: Vec::new(), 
             string_expr_parts: Vec::new(),
             member_assign: None,
         }
@@ -884,6 +889,20 @@ impl<'a> SerializingVisitorState<'a> {
             Some((o, e)) => (Some(o), e),
         }
     }
+
+    fn pop_ident<T>(&mut self) -> Option<WIPOffset<T>> {
+        match self.identifiers.pop() {
+            None => {
+                self.err = Some(String::from("Tried popping empty identifier stack"));
+                return None;
+            }
+            Some(wip) => Some(WIPOffset::new(wip.value()))
+        }
+    }
+
+    // fn create_monotype(&mut self) => {
+    //     self.builder.cre
+    // }
 
     fn create_string(&mut self, str: &String) -> Option<WIPOffset<&'a str>> {
         Some(self.builder.create_string(str.as_str()))
@@ -1011,5 +1030,5 @@ fn fb_duration(d: &String) -> Result<fbsemantic::TimeUnit, String> {
     }
 }
 
-// #[cfg(test)]
-// mod tests; 
+#[cfg(test)]
+mod tests; 

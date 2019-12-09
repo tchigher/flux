@@ -305,7 +305,7 @@ fn build_constraint<'a>(
     )
 }
 
-fn build_type<'a>(
+pub fn build_type<'a>(
     builder: &mut flatbuffers::FlatBufferBuilder<'a>,
     t: MonoType,
 ) -> (

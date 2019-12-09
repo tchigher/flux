@@ -1,18 +1,8 @@
 pub mod analyze;
 pub use analyze::analyze;
 
-<<<<<<< HEAD:libflux/src/flux/semantic/mod.rs
-<<<<<<< HEAD:libflux/src/flux/semantic/mod.rs
 mod import;
-=======
-=======
-#[allow(unused, non_snake_case)]
->>>>>>> fix(libflux/semantic): update generated flatbuffer schema:libflux/src/semantic/mod.rs
-pub mod flatbuffers; 
 
-mod env;
-mod fresh;
->>>>>>> feat(libflux/semantic): serialize semantic graph flatbuffers:libflux/src/semantic/mod.rs
 mod infer;
 mod sub;
 
@@ -29,14 +19,11 @@ mod parser;
 #[cfg(test)]
 mod tests;
 
-<<<<<<< HEAD:libflux/src/flux/semantic/mod.rs
 #[allow(unused, non_snake_case)]
-pub mod flatbuffers;
+pub mod flatbuffers; 
 
 pub mod builtins;
 
-=======
->>>>>>> fix(libflux/semantic): update generated flatbuffer schema:libflux/src/semantic/mod.rs
 use crate::ast;
 use crate::parser::parse_string;
 use crate::semantic::analyze::analyze_with;
