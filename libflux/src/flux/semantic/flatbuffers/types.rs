@@ -263,7 +263,7 @@ fn build_type_assignment<'a>(
 }
 
 /// Encodes a polytype as a flatbuffer
-fn build_polytype<'a>(
+pub fn build_polytype<'a>(
     builder: &mut flatbuffers::FlatBufferBuilder<'a>,
     t: PolyType,
 ) -> flatbuffers::WIPOffset<fb::PolyType<'a>> {
