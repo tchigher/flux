@@ -553,6 +553,7 @@ impl<'a> ast::walk::Visitor<'a> for SerializingVisitor<'a> {
                         init_,
                     },
                 );
+                print!("done with return \n"); 
                 v.stmts
                     .push((va.as_union_value(), fbast::Statement::VariableAssignment));
             }

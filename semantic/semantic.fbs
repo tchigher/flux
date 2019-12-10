@@ -97,8 +97,6 @@ union Statement {
     TestStatement,               
     ExpressionStatement,         
     ReturnStatement,
-    NativeVariableAssignment,    
-    MemberAssignment,          
 }
 
 union Assignment {

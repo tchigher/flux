@@ -76,10 +76,14 @@ re !~ /foo/
         ),
     ];
 <<<<<<< HEAD
+<<<<<<< HEAD
     let pkg = ast::Package {
 =======
     let ast_pkg = ast::Package {
 >>>>>>> fix(libflux/semantic): put the files back in their correct folders
+=======
+    let pkg = ast::Package {
+>>>>>>> fix(libflux/semantic): prepare to create new branch to fix analyze
         base: ast::BaseNode {
             ..ast::BaseNode::default()
         },
@@ -88,10 +92,14 @@ re !~ /foo/
         files: f,
     };
 <<<<<<< HEAD
+<<<<<<< HEAD
     let mut pkg = match analyze(pkg) {
 =======
     let mut pkg = match analyze(ast_pkg) {
 >>>>>>> fix(libflux/semantic): put the files back in their correct folders
+=======
+    let mut pkg = match analyze(pkg) {
+>>>>>>> fix(libflux/semantic): prepare to create new branch to fix analyze
         Ok(pkg) => pkg, 
         Err(e) => {
             assert!(false, e);
