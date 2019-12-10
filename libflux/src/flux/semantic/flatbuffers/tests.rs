@@ -75,7 +75,11 @@ re !~ /foo/
 "#,
         ),
     ];
+<<<<<<< HEAD
     let pkg = ast::Package {
+=======
+    let ast_pkg = ast::Package {
+>>>>>>> fix(libflux/semantic): put the files back in their correct folders
         base: ast::BaseNode {
             ..ast::BaseNode::default()
         },
@@ -83,7 +87,11 @@ re !~ /foo/
         package: String::from("test"),
         files: f,
     };
+<<<<<<< HEAD
     let mut pkg = match analyze(pkg) {
+=======
+    let mut pkg = match analyze(ast_pkg) {
+>>>>>>> fix(libflux/semantic): put the files back in their correct folders
         Ok(pkg) => pkg, 
         Err(e) => {
             assert!(false, e);
