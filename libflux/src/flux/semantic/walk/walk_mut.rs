@@ -229,7 +229,7 @@ impl<'a> NodeMut<'a> {
             NodeMut::Block(Block::Expr(ref mut estmt, _)) => {
                 mut_expr_loc(&mut estmt.expression, loc)
             }
-            NodeMut::Block(Block::Return(ref mut expr)) => mut_expr_loc(expr, loc),
+            NodeMut::Block(Block::Return(ref mut expr)) => mut_expr_loc(&mut expr.argument, loc),
             NodeMut::Property(ref mut n) => n.loc = loc,
             NodeMut::TextPart(ref mut n) => n.loc = loc,
             NodeMut::InterpolatedPart(ref mut n) => n.loc = loc,
@@ -477,7 +477,7 @@ where
                     walk_mut(v, &mut NodeMut::ExprStmt(estmt));
                     walk_mut(v, &mut NodeMut::Block(&mut *next))
                 }
-                Block::Return(ref mut expr) => walk_mut(v, &mut NodeMut::from_expr(expr)),
+                Block::Return(ref mut ret_stmt) => walk_mut(v, &mut NodeMut::ReturnStmt(ret_stmt)),
             },
             NodeMut::Property(ref mut n) => {
                 walk_mut(v, &mut NodeMut::Identifier(&mut n.key));
@@ -574,6 +574,7 @@ mod tests {
                     "ExprStmt",
                     "FunctionExpr",
                     "Block::Return",
+                    "ReturnStmt",
                     "IntegerLit",
                 ],
             )
@@ -607,6 +608,7 @@ mod tests {
                     "IdentifierExpr",
                     "IdentifierExpr",
                     "Block::Return",
+                    "ReturnStmt",
                     "IdentifierExpr",
                 ],
             )
@@ -623,6 +625,7 @@ mod tests {
                     "Identifier",
                     "IntegerLit",
                     "Block::Return",
+                    "ReturnStmt",
                     "IdentifierExpr",
                 ],
             )
@@ -804,6 +807,7 @@ mod tests {
                     "FunctionParameter",
                     "Identifier",
                     "Block::Return",
+                    "ReturnStmt",
                     "IdentifierExpr",
                 ],
             )
@@ -833,6 +837,7 @@ mod tests {
                     "ExprStmt",
                     "FunctionExpr",
                     "Block::Return",
+                    "ReturnStmt",
                     "IntegerLit",
                 ],
             )
