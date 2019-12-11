@@ -239,12 +239,10 @@ pub mod fbsemantic {
         TestStatement = 3,
         ExpressionStatement = 4,
         ReturnStatement = 5,
-        NativeVariableAssignment = 6,
-        MemberAssignment = 7,
     }
 
     const ENUM_MIN_STATEMENT: u8 = 0;
-    const ENUM_MAX_STATEMENT: u8 = 7;
+    const ENUM_MAX_STATEMENT: u8 = 5;
 
     impl<'a> flatbuffers::Follow<'a> for Statement {
         type Inner = Self;
@@ -278,27 +276,23 @@ pub mod fbsemantic {
     }
 
     #[allow(non_camel_case_types)]
-    const ENUM_VALUES_STATEMENT: [Statement; 8] = [
+    const ENUM_VALUES_STATEMENT: [Statement; 6] = [
         Statement::NONE,
         Statement::OptionStatement,
         Statement::BuiltinStatement,
         Statement::TestStatement,
         Statement::ExpressionStatement,
         Statement::ReturnStatement,
-        Statement::NativeVariableAssignment,
-        Statement::MemberAssignment,
     ];
 
     #[allow(non_camel_case_types)]
-    const ENUM_NAMES_STATEMENT: [&'static str; 8] = [
+    const ENUM_NAMES_STATEMENT: [&'static str; 6] = [
         "NONE",
         "OptionStatement",
         "BuiltinStatement",
         "TestStatement",
         "ExpressionStatement",
         "ReturnStatement",
-        "NativeVariableAssignment",
-        "MemberAssignment",
     ];
 
     pub fn enum_name_statement(e: Statement) -> &'static str {
@@ -2924,30 +2918,6 @@ pub mod fbsemantic {
             if self.statement_type() == Statement::ReturnStatement {
                 self.statement()
                     .map(|u| ReturnStatement::init_from_table(u))
-            } else {
-                None
-            }
-        }
-
-        #[inline]
-        #[allow(non_snake_case)]
-        pub fn statement_as_native_variable_assignment(
-            &self,
-        ) -> Option<NativeVariableAssignment<'a>> {
-            if self.statement_type() == Statement::NativeVariableAssignment {
-                self.statement()
-                    .map(|u| NativeVariableAssignment::init_from_table(u))
-            } else {
-                None
-            }
-        }
-
-        #[inline]
-        #[allow(non_snake_case)]
-        pub fn statement_as_member_assignment(&self) -> Option<MemberAssignment<'a>> {
-            if self.statement_type() == Statement::MemberAssignment {
-                self.statement()
-                    .map(|u| MemberAssignment::init_from_table(u))
             } else {
                 None
             }

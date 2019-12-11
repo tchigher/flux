@@ -710,41 +710,9 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::Block(block) => {
-                // block statements are consumed by the function expression node 
-
-                // print!("create block\n"); 
-                // let mut block_len = 0; 
-                // let mut current = block; 
-                // loop {
-                //     block_len += 1;
-                //     print!("stmt {}\n", v.stmts.len()); 
-                //     match current {
-                //         semantic::nodes::Block::Expr(_, next) => {
-                //             let current = &next.as_ref(); 
-                //         }
-                //         semantic::nodes::Block::Variable(_, next) => {
-                //             let current = &next.as_ref(); 
-                //         }
-                //         semantic::nodes::Block::Return(retn) => {
-                //             break; 
-                //         }
-                //     }
-                // }
-
-                // print!("create vector; block len {}\n", block_len);
-                // let body = {
-                //     let stmt_vec = v.create_stmt_vector(block_len); 
-                //     Some(v.builder.create_vector(&stmt_vec.as_slice()))
-                // }; 
-
-                // let block = fbsemantic::Block::create(
-                //     &mut v.builder, 
-                //     &fbsemantic::BlockArgs {
-                //         loc, 
-                //         body, 
-                //     }, 
-                // ); 
-                // v.blocks.push(block); 
+                // Block statements must be convered in this enum in order to also walk all child nodes. 
+                // However, block statements are consumed by the function expression node so that 
+                // blocks are only constructed once all child nodes have been traversed. 
             }
 
             walk::Node::ImportDeclaration(_) => {

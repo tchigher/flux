@@ -14,7 +14,8 @@ fn test_serialize() {
             "test1",
             r#"
 package testpkg
-
+import "my_other_pkg"
+import "yet_another_pkg"
 option now = () => (2030-01-01T00:00:00Z)
 option foo.bar = "baz"
 builtin foo
@@ -75,15 +76,7 @@ re !~ /foo/
 "#,
         ),
     ];
-<<<<<<< HEAD
-<<<<<<< HEAD
     let pkg = ast::Package {
-=======
-    let ast_pkg = ast::Package {
->>>>>>> fix(libflux/semantic): put the files back in their correct folders
-=======
-    let pkg = ast::Package {
->>>>>>> fix(libflux/semantic): prepare to create new branch to fix analyze
         base: ast::BaseNode {
             ..ast::BaseNode::default()
         },
@@ -91,15 +84,7 @@ re !~ /foo/
         package: String::from("test"),
         files: f,
     };
-<<<<<<< HEAD
-<<<<<<< HEAD
     let mut pkg = match analyze(pkg) {
-=======
-    let mut pkg = match analyze(ast_pkg) {
->>>>>>> fix(libflux/semantic): put the files back in their correct folders
-=======
-    let mut pkg = match analyze(pkg) {
->>>>>>> fix(libflux/semantic): prepare to create new branch to fix analyze
         Ok(pkg) => pkg, 
         Err(e) => {
             assert!(false, e);
