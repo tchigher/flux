@@ -14,7 +14,7 @@ fn test_serialize() {
             "test1",
             r#"
 package testpkg
-import "my_other_pkg"
+import other "my_other_pkg"
 import "yet_another_pkg"
 option now = () => (2030-01-01T00:00:00Z)
 option foo.bar = "baz"
@@ -85,7 +85,10 @@ re !~ /foo/
         files: f,
     };
     let mut pkg = match analyze(pkg) {
-        Ok(pkg) => pkg, 
+        Ok(pkg) => {
+            print!("{:#?}\n\n", pkg.files[0]); 
+            pkg
+        },  
         Err(e) => {
             assert!(false, e);
             return;
@@ -133,7 +136,9 @@ fn compare_pkg_fb(semantic_pkg: &semantic::nodes::Package, fb_pkg: &fbsemantic::
 
 fn compare_files(semantic_file: &semantic::nodes::File, fb_file: &fbsemantic::File) -> Result<(), String> {
     compare_loc(&semantic_file.loc, &fb_file.loc())?;
+    print!("**136 \n\n");
     let semantic_file_name = &semantic_file.package.as_ref().unwrap().name.name; 
+    print!("**137 \n\n");
     let fb_file_name = &fb_file.package().unwrap().name().unwrap().name(); 
     compare_strings("file name", semantic_file_name, fb_file_name)?;
     compare_package_clause(&semantic_file.package, &fb_file.package())?;
@@ -368,6 +373,7 @@ fn compare_exprs(
         // }
         (semantic::nodes::Expression::DateTime(semantic_dtl), fbsemantic::Expression::DateTimeLiteral) => {
             let fb_dtl = fbsemantic::DateTimeLiteral::init_from_table(*fb_tbl);
+            print!("**373 \n\n");
             let fb_dtl_val = fb_dtl.value().unwrap(); 
             let dtl = chrono::DateTime::<FixedOffset>::from_utc(
                 chrono::NaiveDateTime::from_timestamp(fb_dtl_val.secs(), fb_dtl_val.nsecs()),
@@ -558,6 +564,7 @@ fn compare_param(semantic_param: &semantic::nodes::FunctionParameter, fb_param: 
         return Err(format!("mismatch: semantic: {}, fb: {}", semantic_param.is_pipe, fb_param.is_pipe()));
     }
     compare_ids(&semantic_param.key, &fb_param.key()); 
+    print!("**564 \n\n");
     compare_exprs(&semantic_param.default.as_ref().unwrap(), fb_param.default_type(), &fb_param.default())
 }
 
@@ -721,8 +728,18 @@ fn compare_call_exprs(
     compare_loc(&semantic_ce.loc, &fb_ce.loc())?;
     compare_exprs(&semantic_ce.callee, fb_ce.callee_type(), &fb_ce.callee())?;
     let semantic_args = &semantic_ce.arguments[0];
+    print!("**728 \n\n");
     let fb_args = fb_ce.arguments().unwrap();
-    compare_property(semantic_args, &fb_args); 
+    
+    let mut index = 0; 
+    loop {
+        if index >= semantic_ce.arguments.len() {
+            break; 
+        }
+        compare_property(&semantic_ce.arguments[index], &fb_args.get(index)); 
+        index += 1; 
+    }
+    
     Ok(())
 }
 

@@ -97,6 +97,8 @@ union Statement {
     TestStatement,               
     ExpressionStatement,         
     ReturnStatement,
+    MemberAssignment,
+    NativeVariableAssignment,
 }
 
 union Assignment {
@@ -295,7 +297,7 @@ table BinaryExpression {
 table CallExpression {
   loc:SourceLocation;
   callee:Expression;
-  arguments:Property;
+  arguments:[Property];
   pipe:Expression;
   typ:MonoType;
 }
