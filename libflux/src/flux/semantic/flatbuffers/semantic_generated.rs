@@ -239,10 +239,12 @@ pub mod fbsemantic {
         TestStatement = 3,
         ExpressionStatement = 4,
         ReturnStatement = 5,
+        MemberAssignment = 6,
+        NativeVariableAssignment = 7,
     }
 
     const ENUM_MIN_STATEMENT: u8 = 0;
-    const ENUM_MAX_STATEMENT: u8 = 5;
+    const ENUM_MAX_STATEMENT: u8 = 7;
 
     impl<'a> flatbuffers::Follow<'a> for Statement {
         type Inner = Self;
@@ -276,23 +278,27 @@ pub mod fbsemantic {
     }
 
     #[allow(non_camel_case_types)]
-    const ENUM_VALUES_STATEMENT: [Statement; 6] = [
+    const ENUM_VALUES_STATEMENT: [Statement; 8] = [
         Statement::NONE,
         Statement::OptionStatement,
         Statement::BuiltinStatement,
         Statement::TestStatement,
         Statement::ExpressionStatement,
         Statement::ReturnStatement,
+        Statement::MemberAssignment,
+        Statement::NativeVariableAssignment,
     ];
 
     #[allow(non_camel_case_types)]
-    const ENUM_NAMES_STATEMENT: [&'static str; 6] = [
+    const ENUM_NAMES_STATEMENT: [&'static str; 8] = [
         "NONE",
         "OptionStatement",
         "BuiltinStatement",
         "TestStatement",
         "ExpressionStatement",
         "ReturnStatement",
+        "MemberAssignment",
+        "NativeVariableAssignment",
     ];
 
     pub fn enum_name_statement(e: Statement) -> &'static str {
@@ -2918,6 +2924,30 @@ pub mod fbsemantic {
             if self.statement_type() == Statement::ReturnStatement {
                 self.statement()
                     .map(|u| ReturnStatement::init_from_table(u))
+            } else {
+                None
+            }
+        }
+
+        #[inline]
+        #[allow(non_snake_case)]
+        pub fn statement_as_member_assignment(&self) -> Option<MemberAssignment<'a>> {
+            if self.statement_type() == Statement::MemberAssignment {
+                self.statement()
+                    .map(|u| MemberAssignment::init_from_table(u))
+            } else {
+                None
+            }
+        }
+
+        #[inline]
+        #[allow(non_snake_case)]
+        pub fn statement_as_native_variable_assignment(
+            &self,
+        ) -> Option<NativeVariableAssignment<'a>> {
+            if self.statement_type() == Statement::NativeVariableAssignment {
+                self.statement()
+                    .map(|u| NativeVariableAssignment::init_from_table(u))
             } else {
                 None
             }
@@ -7322,11 +7352,12 @@ pub mod fbsemantic {
                 )
         }
         #[inline]
-        pub fn arguments(&self) -> Option<Property<'a>> {
-            self._tab.get::<flatbuffers::ForwardsUOffset<Property<'a>>>(
-                CallExpression::VT_ARGUMENTS,
-                None,
-            )
+        pub fn arguments(
+            &self,
+        ) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Property<'a>>>> {
+            self._tab.get::<flatbuffers::ForwardsUOffset<
+                flatbuffers::Vector<flatbuffers::ForwardsUOffset<Property<'a>>>,
+            >>(CallExpression::VT_ARGUMENTS, None)
         }
         #[inline]
         pub fn pipe_type(&self) -> Expression {
@@ -7818,7 +7849,11 @@ pub mod fbsemantic {
         pub loc: Option<flatbuffers::WIPOffset<SourceLocation<'a>>>,
         pub callee_type: Expression,
         pub callee: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
-        pub arguments: Option<flatbuffers::WIPOffset<Property<'a>>>,
+        pub arguments: Option<
+            flatbuffers::WIPOffset<
+                flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Property<'a>>>,
+            >,
+        >,
         pub pipe_type: Expression,
         pub pipe: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
         pub typ_type: MonoType,
@@ -7866,12 +7901,16 @@ pub mod fbsemantic {
                 .push_slot_always::<flatbuffers::WIPOffset<_>>(CallExpression::VT_CALLEE, callee);
         }
         #[inline]
-        pub fn add_arguments(&mut self, arguments: flatbuffers::WIPOffset<Property<'b>>) {
-            self.fbb_
-                .push_slot_always::<flatbuffers::WIPOffset<Property>>(
-                    CallExpression::VT_ARGUMENTS,
-                    arguments,
-                );
+        pub fn add_arguments(
+            &mut self,
+            arguments: flatbuffers::WIPOffset<
+                flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<Property<'b>>>,
+            >,
+        ) {
+            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(
+                CallExpression::VT_ARGUMENTS,
+                arguments,
+            );
         }
         #[inline]
         pub fn add_pipe_type(&mut self, pipe_type: Expression) {
