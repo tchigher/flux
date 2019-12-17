@@ -617,7 +617,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             walk::Node::MemberAssgn(mem) => {
                 let (init_, init__type) = v.pop_expr(); 
                 let member = v.pop_expr_with_kind(fbsemantic::Expression::MemberExpression); 
-                let mem = Some(fbsemantic::MemberAssignment::create(
+                let mem = fbsemantic::MemberAssignment::create(
                     &mut v.builder, 
                     &fbsemantic::MemberAssignmentArgs {
                         loc, 
@@ -625,9 +625,8 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         init__type,  
                         init_
                     }, 
-                ));
-                v.member_assign = mem; 
-                v.stmts.push((mem.unwrap().as_union_value(), fbsemantic::Statement::MemberAssignment)); 
+                );
+                v.stmts.push((mem.as_union_value(), fbsemantic::Statement::MemberAssignment));
             }
 
             walk::Node::VariableAssgn(native) => {
@@ -637,7 +636,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 let poly = native.poly_type_of();
                 let typ = Some(types::build_polytype(&mut v.builder, poly)); 
 
-                let native = Some(fbsemantic::NativeVariableAssignment::create(
+                let native = fbsemantic::NativeVariableAssignment::create(
                     &mut v.builder, 
                     &fbsemantic::NativeVariableAssignmentArgs {
                         loc, 
@@ -646,8 +645,8 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         init_, 
                         typ, 
                     }, 
-                ));
-                v.stmts.push((native.unwrap().as_union_value(), fbsemantic::Statement::NativeVariableAssignment)); 
+                );
+                v.stmts.push((native.as_union_value(), fbsemantic::Statement::NativeVariableAssignment));
             }
             walk::Node::ReturnStmt(_) => {
                 let (argument, argument_type) = v.pop_expr(); 
@@ -674,17 +673,26 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 v.stmts.push((expr.as_union_value(), fbsemantic::Statement::ExpressionStatement)); 
             }
             walk::Node::TestStmt(test) => {
-                // let (assign_wipo, _) = v.stmts.pop().unwrap(); 
-                // let assignment = WIPOffset::new(assign_wipo.value()); 
+                let assignment = {
+                    match v.stmts.pop() {
+                        Some((union, fbsemantic::Statement::NativeVariableAssignment)) => {
+                            Some(WIPOffset::new(union.value()))
+                        }
+                        _ => {
+                            v.err = Some(String::from(
+                                "failed to pop assignment statement from stmt vector",
+                            ));
+                            return;
+                        }
+                    }
+                };
                 let test = fbsemantic::TestStatement::create(
                     &mut v.builder,
                     &fbsemantic::TestStatementArgs {
                         loc,
-                        assignment: v.native, 
+                        assignment,
                     },
                 );
-                v.native = None; 
-                v.stmts.pop(); // pop native assignment
                 v.stmts
                     .push((test.as_union_value(), fbsemantic::Statement::TestStatement));
             }
@@ -704,23 +712,25 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             walk::Node::OptionStmt(opt) => {
                 let (assignment, assignment_type) = {
                     match &opt.assignment {
-                        VariableAssgn => {
-                            match v.stmts.pop().unwrap() {
-                                (native, _) => {
-                                    v.native = None; 
-                                    (Some(native.as_union_value()), fbsemantic::Assignment::NativeVariableAssignment)
+                        semantic::nodes::Assignment::Variable(_) => {
+                            match v.stmts.pop() {
+                                Some((nva, fbsemantic::Statement::NativeVariableAssignment)) => {
+                                    (Some(nva), fbsemantic::Assignment::NativeVariableAssignment)
                                 }, 
-                                _ => {
-                                    v.err = Some(String::from("Native assignment was not added to SerializingVisitor")); 
+                                Some((_, ty)) => {
+                                    v.err = Some(String::from(format!("found {:?} in stmt vector", ty)));
+                                    return
+                                }
+                                None => {
+                                    v.err = Some(String::from("empty stmt vector looking for assignment"));
                                     return
                                 }
                             }
                         }
-                        MemberAssgn => {
-                            match v.stmts.pop().unwrap() {
-                                (member, fbsemantic::Statement::MemberAssignment) => {
-                                    v.member_assign = None; 
-                                    (Some(member.as_union_value()), fbsemantic::Assignment::MemberAssignment)
+                        semantic::nodes::Assignment::Member(_) => {
+                            match v.stmts.pop() {
+                                Some((member, fbsemantic::Statement::MemberAssignment)) => {
+                                    (Some(member), fbsemantic::Assignment::MemberAssignment)
                                 }
                                 _ => {
                                     v.err = Some(String::from("Member assignment was not added to SerializingVisitor")); 
@@ -851,9 +861,7 @@ struct SerializingVisitorState<'a> {
 
     package: Option<WIPOffset<fbsemantic::Package<'a>>>,
     package_clause: Option<WIPOffset<fbsemantic::PackageClause<'a>>>,
-    native: Option<WIPOffset<fbsemantic::NativeVariableAssignment<'a>>>,
-    member_assign: Option<WIPOffset<fbsemantic::MemberAssignment<'a>>>,
-    
+
     import_decls: Vec<WIPOffset<fbsemantic::ImportDeclaration<'a>>>,
     files: Vec<WIPOffset<fbsemantic::File<'a>>>,
     blocks: Vec<WIPOffset<fbsemantic::Block<'a>>>,
@@ -875,8 +883,6 @@ impl<'a> SerializingVisitorState<'a> {
             builder: flatbuffers::FlatBufferBuilder::new_with_capacity(capacity),
             package: None,
             package_clause: None,
-            native: None, 
-            member_assign: None, 
             import_decls: Vec::new(),
             files: Vec::new(),
             blocks: Vec::new(),
