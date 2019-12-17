@@ -64,7 +64,7 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         typ: Some(typ), 
                         typ_type,
                     }, 
-                ); 
+                );
                 v.expr_stack.push((int.as_union_value(), fbsemantic::Expression::IntegerLiteral))
             }
             walk::Node::UintLit(uint) => {
@@ -207,8 +207,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::IdentifierExpr(id) => {
-                print!("ident expr: {:?}\n", id.name); 
-
                 let name = v.create_string(&id.name); 
                 
                 let id_typ = id.typ.clone(); 
@@ -227,7 +225,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::Identifier(id) => {
-                print!("ident: {:?}\n", id.name); 
                 let name = v.create_string(&id.name); 
                 let identifier = fbsemantic::Identifier::create(
                     &mut v.builder, 
@@ -241,7 +238,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
 
             walk::Node::Property(prop) => {
                 // the value for a property is always an expression
-                print!("property\n"); 
                 let key = v.identifiers.pop(); 
                 let (value, value_type) = v.pop_expr();
 
@@ -324,8 +320,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::MemberExpr(member) => {
-                print!("member: {:?}\n", member.property); 
-
                 let property = v.create_string(&member.property); 
                 let (object, object_type) = v.pop_expr(); 
 
@@ -373,8 +367,8 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
 
             walk::Node::ConditionalExpr(cond) => {
                 let (test, test_type) = v.pop_expr(); 
-                let (alternate, alternate_type) = v.pop_expr(); 
                 let (consequent, consequent_type) = v.pop_expr(); 
+                let (alternate, alternate_type) = v.pop_expr(); 
 
                 let cond_typ = cond.typ.clone();
                 let (typ, typ_type) = types::build_type(&mut v.builder, cond_typ); 
@@ -398,16 +392,8 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::CallExpr(call) => {
-                let arguments = {
-                    let arg_num = call.arguments.len(); 
-                    let start = v.properties.len() - arg_num; 
-                    let arg_slice = &v.properties.as_slice()[start..];
-                    let vec = v.builder.create_vector(arg_slice);
-                    v.properties.truncate(start); 
-                    Some(vec)
-                }; 
                 let (callee, callee_type) = v.pop_expr();
-                
+
                 let (pipe, pipe_type) = {
                     match &call.pipe {
                         Some(_) => v.pop_expr(), 
@@ -415,6 +401,15 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     }
                 };
 
+                let arguments = {
+                    let arg_num = call.arguments.len();
+                    let start = v.properties.len() - arg_num; 
+                    let arg_slice = &v.properties.as_slice()[start..];
+                    let vec = v.builder.create_vector(arg_slice);
+                    v.properties.truncate(start); 
+                    Some(vec)
+                }; 
+                
                 let call_typ = call.typ.clone(); 
                 let (typ, typ_type) = types::build_type(&mut v.builder, call_typ); 
 
@@ -461,24 +456,14 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::FunctionExpr(func) => {
-                let mut param_list: Vec<WIPOffset<fbsemantic::FunctionParameter>> =
-                    Vec::with_capacity(func.params.len()); 
-                for param in &func.params {
-                    let key = v.pop_expr_with_kind(fbsemantic::Expression::IdentifierExpression); 
-                    let (default, default_type) = v.pop_expr(); 
-                    let func_param = fbsemantic::FunctionParameter::create(
-                        &mut v.builder, 
-                        &fbsemantic::FunctionParameterArgs {
-                            loc, 
-                            key,
-                            is_pipe: param.is_pipe, 
-                            default, 
-                            default_type,
-                        },
-                    );
-                    param_list.push(func_param); 
-                }
-                let params = Some(v.builder.create_vector(param_list.as_slice())); 
+                let params = {
+                    let par_num = func.params.len(); 
+                    let start = v.params.len() - par_num; 
+                    let par_slice = &v.params.as_slice()[start..];
+                    let vec = v.builder.create_vector(par_slice);
+                    v.params.truncate(start); 
+                    Some(vec)
+                }; 
 
                 let mut block_len = 0; 
                 let mut current = &func.body; 
@@ -525,7 +510,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::FunctionParameter(func_param) => {
-                print!("func param \n"); 
                 let key = v.pop_ident("func param".to_string()); 
 
                 let (default, default_type) = {
@@ -545,10 +529,10 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         default_type,
                     },
                 );
+                v.params.push(func_param); 
             }
 
             walk::Node::ArrayExpr(array) => {
-                print!("array expr"); 
                 let num_elems = array.elements.len();
                 let elements = {
                     let start = v.expr_stack.len() - num_elems;
@@ -631,7 +615,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::MemberAssgn(mem) => {
-                print!("member assign"); 
                 let (init_, init__type) = v.pop_expr(); 
                 let member = v.pop_expr_with_kind(fbsemantic::Expression::MemberExpression); 
                 let mem = Some(fbsemantic::MemberAssignment::create(
@@ -644,11 +627,10 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                     }, 
                 ));
                 v.member_assign = mem; 
+                v.stmts.push((mem.unwrap().as_union_value(), fbsemantic::Statement::MemberAssignment)); 
             }
 
             walk::Node::VariableAssgn(native) => {
-                print!("var assign \n"); 
-
                 let (init_, init__type) = v.pop_expr(); 
                 let identifier = v.pop_ident("var assign".to_string());  
 
@@ -665,11 +647,9 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         typ, 
                     }, 
                 ));
-                v.native = native; 
                 v.stmts.push((native.unwrap().as_union_value(), fbsemantic::Statement::NativeVariableAssignment)); 
             }
             walk::Node::ReturnStmt(_) => {
-                print!("return\n"); 
                 let (argument, argument_type) = v.pop_expr(); 
                 let return_st = fbsemantic::ReturnStatement::create(
                     &mut v.builder, 
@@ -679,11 +659,9 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         argument_type
                     },
                 ); 
-                print!("done with return \n"); 
                 v.stmts.push((return_st.as_union_value(), fbsemantic::Statement::ReturnStatement)); 
             }
             walk::Node::ExprStmt(_) => {
-                print!("expr stmt"); 
                 let (expression, expression_type) = v.pop_expr(); 
                 let expr = fbsemantic::ExpressionStatement::create(
                     &mut v.builder, 
@@ -693,24 +671,25 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                         expression_type
                     },
                 ); 
-                print!("done with expr \n"); 
                 v.stmts.push((expr.as_union_value(), fbsemantic::Statement::ExpressionStatement)); 
             }
             walk::Node::TestStmt(test) => {
+                // let (assign_wipo, _) = v.stmts.pop().unwrap(); 
+                // let assignment = WIPOffset::new(assign_wipo.value()); 
                 let test = fbsemantic::TestStatement::create(
                     &mut v.builder,
                     &fbsemantic::TestStatementArgs {
                         loc,
-                        assignment: v.native,
+                        assignment: v.native, 
                     },
                 );
                 v.native = None; 
+                v.stmts.pop(); // pop native assignment
                 v.stmts
                     .push((test.as_union_value(), fbsemantic::Statement::TestStatement));
             }
 
             walk::Node::BuiltinStmt(builtin) => {
-                print!("built in \n"); 
                 let id = v.pop_ident("built".to_string()); 
                 let builtin = fbsemantic::BuiltinStatement::create(
                     &mut v.builder, 
@@ -726,24 +705,32 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 let (assignment, assignment_type) = {
                     match &opt.assignment {
                         VariableAssgn => {
-                            if let Some(native) = v.native {
-                                (Some(native.as_union_value()), fbsemantic::Assignment::NativeVariableAssignment)
-                            } else {
-                                v.err = Some(String::from("Native assignment was not added to SerializingVisitor")); 
-                                return
+                            match v.stmts.pop().unwrap() {
+                                (native, _) => {
+                                    v.native = None; 
+                                    (Some(native.as_union_value()), fbsemantic::Assignment::NativeVariableAssignment)
+                                }, 
+                                _ => {
+                                    v.err = Some(String::from("Native assignment was not added to SerializingVisitor")); 
+                                    return
+                                }
                             }
                         }
                         MemberAssgn => {
-                            if let Some(member) = v.member_assign {
-                                (Some(member.as_union_value()), fbsemantic::Assignment::MemberAssignment)
-                            } else {
-                                v.err = Some(String::from("Member assignment was not added to SerializingVisitor")); 
-                                return
+                            match v.stmts.pop().unwrap() {
+                                (member, fbsemantic::Statement::MemberAssignment) => {
+                                    v.member_assign = None; 
+                                    (Some(member.as_union_value()), fbsemantic::Assignment::MemberAssignment)
+                                }
+                                _ => {
+                                    v.err = Some(String::from("Member assignment was not added to SerializingVisitor")); 
+                                    return
+                                }
                             }
                         }
                     }
                 }; 
-
+                println!("assignment type: {:#?}", assignment_type); 
                 let opt = fbsemantic::OptionStatement::create(
                     &mut v.builder, 
                     &fbsemantic::OptionStatementArgs {
@@ -762,7 +749,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::ImportDeclaration(imp) => {
-                print!("imports {:#?}\n", v.import_decls); 
                 let alias = {
                     match imp.alias {
                         Some(_) => v.pop_ident("import".to_string()), 
@@ -783,7 +769,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
             }
 
             walk::Node::PackageClause(_) => {
-                print!("package \n"); 
                 let name = v.pop_ident("Package".to_string()); 
                 let pc = fbsemantic::PackageClause::create(
                     &mut v.builder, 
@@ -802,7 +787,6 @@ impl<'a> semantic::walk::Visitor<'_> for SerializingVisitor<'a> {
                 let imports = Some(v.builder.create_vector(v.import_decls.as_slice())); 
                 v.import_decls.clear(); 
 
-                print!("file stmt vec\n "); 
                 let stmt_vec = v.create_stmt_vector(file.body.len());
                 let body = Some(v.builder.create_vector(&stmt_vec.as_slice()));
                 
@@ -859,8 +843,6 @@ impl<'a> SerializingVisitor<'a> {
     }
 }
 
-
-
 struct SerializingVisitorState<'a> {
     // Any error that occurred during serialization, returned by the visitor's finish method.
     err: Option<String>,
@@ -869,8 +851,8 @@ struct SerializingVisitorState<'a> {
 
     package: Option<WIPOffset<fbsemantic::Package<'a>>>,
     package_clause: Option<WIPOffset<fbsemantic::PackageClause<'a>>>,
-    native: Option<WIPOffset<fbsemantic::NativeVariableAssignment<'a>>>, 
-    member_assign: Option<WIPOffset<fbsemantic::MemberAssignment<'a>>>, 
+    native: Option<WIPOffset<fbsemantic::NativeVariableAssignment<'a>>>,
+    member_assign: Option<WIPOffset<fbsemantic::MemberAssignment<'a>>>,
     
     import_decls: Vec<WIPOffset<fbsemantic::ImportDeclaration<'a>>>,
     files: Vec<WIPOffset<fbsemantic::File<'a>>>,
@@ -878,6 +860,7 @@ struct SerializingVisitorState<'a> {
     stmts: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::Statement)>,
     vars: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::Var<'a>)>,
     cons: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::Constraint<'a>)>,
+    params: Vec<WIPOffset<fbsemantic::FunctionParameter<'a>>>,
 
     expr_stack: Vec<(WIPOffset<UnionWIPOffset>, fbsemantic::Expression)>,
     properties: Vec<WIPOffset<fbsemantic::Property<'a>>>,
@@ -890,16 +873,17 @@ impl<'a> SerializingVisitorState<'a> {
         SerializingVisitorState {
             err: None,
             builder: flatbuffers::FlatBufferBuilder::new_with_capacity(capacity),
-            native: None, 
-            member_assign: None,
             package: None,
             package_clause: None,
+            native: None, 
+            member_assign: None, 
             import_decls: Vec::new(),
             files: Vec::new(),
             blocks: Vec::new(),
             stmts: Vec::new(),
             vars: Vec::new(), 
             cons: Vec::new(), 
+            params: Vec::new(), 
             expr_stack: Vec::new(),
             properties: Vec::new(),
             identifiers: Vec::new(), 
@@ -975,9 +959,7 @@ impl<'a> SerializingVisitorState<'a> {
             );
             wrapped_stmts.push(wrapped_st);
         }
-
         self.stmts.truncate(start);
-
         wrapped_stmts
     }
 
@@ -989,7 +971,6 @@ impl<'a> SerializingVisitorState<'a> {
     fn pop_assignment_stmt(&mut self) -> (Option<WIPOffset<UnionWIPOffset>>, fbsemantic::Assignment) {
         match self.stmts.pop() {
             Some((va, fbsemantic::Statement::NativeVariableAssignment)) => {
-                
                 (Some(va), fbsemantic::Assignment::NativeVariableAssignment)
             }
             None => {
