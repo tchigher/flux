@@ -1,7 +1,18 @@
 #![cfg_attr(feature = "strict", deny(warnings, missing_docs))]
 
-//! The flux crate handles the parsing and semantic analysis of flux source
-//! code.
+//! The `core` crate handles the parsing and semantic analysis of Flux source code.
+//! It is made up of five packages. Three of these packages handle the follow work
+//! required to analyze Flux code:
+//! 
+//! - parser
+//! - scanner
+//! - responsible for forming the abstract syntax tree (AST).
+//!
+//! Additional crates are responsible for semantic analysis, procuding a Semantic Graph.
+//! formatter provide a code formatting tool.
+//!
+//! Together these crates for the core structures needed for compiling and eventually executing
+//! Flux code.
 extern crate chrono;
 #[macro_use]
 extern crate serde_derive;
@@ -18,8 +29,7 @@ use std::fmt;
 
 pub use ast::DEFAULT_PACKAGE_NAME;
 
-/// An error that can occur due to problems in ast generation or semantic
-/// analysis.
+/// An error that can occur due to problems in AST generation or semantic analysis.
 #[derive(Debug, Clone)]
 pub struct Error {
     /// Message.

@@ -7,18 +7,17 @@ use crate::semantic::types::{minus, Kind, MonoType, PolyType, SubstitutionMap, T
 use std::fmt;
 use std::ops;
 
-// Type constraints are produced during type inference and come
-// in two flavors.
-//
-// A kind constraint asserts that a particular type is of a
-// particular kind or family of types.
-//
-// An equality contraint asserts that two types are equivalent
-// and will be unified at some point.
-//
-// A constraint is composed of an expected type, the actual type
-// that was found, and the source location of the actual type.
-//
+/// Type constraints are produced during type inference and come
+/// in two flavors:
+///
+/// - A kind constraint asserts that a particular type is of a
+///   particular kind or family of types.
+/// - An equality contraint asserts that two types are equivalent
+///   and will be unified at some point.
+///
+/// A constraint is composed of an expected type, the actual type
+/// that was found, and the source location of the actual type.
+///
 #[derive(Debug, PartialEq)]
 pub enum Constraint {
     Kind {
@@ -122,14 +121,13 @@ pub fn solve(
         })
 }
 
-// Create a parametric type from a monotype by universally quantifying
-// all of its free type variables.
-//
-// A type variable is free in a monotype if it is **free** in the global
-// type environment. Equivalently a type variable is free and can be
-// quantified if has not already been quantified another type in the
-// type environment.
-//
+/// Create a parametric type from a monotype by universally quantifying
+/// all of its free type variables.
+///
+/// A type variable is free in a monotype if it is **free** in the global
+/// type environment. Equivalently a type variable is free and can be
+/// quantified if has not already been quantified another type in the
+/// type environment.
 pub fn generalize(env: &Environment, with: &TvarKinds, t: MonoType) -> PolyType {
     let vars = minus(&env.free_vars(), t.free_vars());
     let mut cons = TvarKinds::new();

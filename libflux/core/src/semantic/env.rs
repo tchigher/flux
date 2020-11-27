@@ -2,12 +2,12 @@ use crate::semantic::import::Importer;
 use crate::semantic::sub::{Substitutable, Substitution};
 use crate::semantic::types::{union, PolyType, PolyTypeMap, Tvar};
 
-// A type environment maps program identifiers to their polymorphic types.
-//
-// A type environment is implemented as a stack of frames where each
-// frame holds the bindings for the identifiers declared in a particular
-// lexical block.
-//
+/// A type environment maps program identifiers to their polymorphic types.
+///
+/// A type environment is implemented as a stack of frames where each
+/// frame holds the bindings for the identifiers declared in a particular
+/// lexical block.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
     pub parent: Option<Box<Environment>>,
@@ -112,23 +112,24 @@ impl Environment {
     pub fn remove(&mut self, name: &str) {
         self.values.remove(name);
     }
-    // A type environment is a stack where each frame corresponds to a lexical
-    // block inside a Flux program.
-    //
-    // After inferring the types in each lexical block, the frame at the top
-    // of the stack will be popped, returning the type environment for the
-    // enclosing block.
-    //
-    // Note that 'pop' must be paired with a corresponding call to 'new'. In
-    // particular when inferring the type of a function expression, a new
-    // frame must be added to the top of the stack by calling 'new'. Then the
-    // bindings for the function arguments must be added to the new frame. At
-    // that point the type of the function body is inferred and the last frame
-    // is popped from the stack and returned to the calling function.
-    //
-    // It is invalid to call pop on a type environment with only one stack
-    // frame. This will result in a panic.
-    //
+
+    /// A type environment is a stack where each frame corresponds to a lexical
+    /// block inside a Flux program.
+    ///
+    /// After inferring the types in each lexical block, the frame at the top
+    /// of the stack will be popped, returning the type environment for the
+    /// enclosing block.
+    ///
+    /// Note that 'pop' must be paired with a corresponding call to 'new'. In
+    /// particular when inferring the type of a function expression, a new
+    /// frame must be added to the top of the stack by calling 'new'. Then the
+    /// bindings for the function arguments must be added to the new frame. At
+    /// that point the type of the function body is inferred and the last frame
+    /// is popped from the stack and returned to the calling function.
+    ///
+    /// It is invalid to call pop on a type environment with only one stack
+    /// frame. This will result in a panic.
+    ///
     pub fn pop(self) -> Environment {
         match self.parent {
             Some(env) => *env,

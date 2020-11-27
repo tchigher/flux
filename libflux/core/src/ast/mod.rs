@@ -18,8 +18,8 @@ use serde_aux::prelude::*;
 
 pub const DEFAULT_PACKAGE_NAME: &str = "main";
 
-// Position is the AST counterpart of Scanner's Position.
-// It adds serde capabilities.
+/// Position is the AST counterpart of Scanner's Position type.
+/// It adds serde serialization capabilities.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Position {
     pub line: u32,

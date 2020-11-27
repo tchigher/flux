@@ -470,7 +470,7 @@ where
 
 /// Implementation of Visitor for a mutable closure.
 /// We need Higher-Rank Trait Bounds (`for<'a> ...`) here for compiling.
-/// See https://doc.rust-lang.org/nomicon/hrtb.html.
+/// See the [Nomicon](https://doc.rust-lang.org/nomicon/hrtb.html).
 impl<'a, F> Visitor<'a> for F
 where
     F: FnMut(Rc<Node<'a>>),

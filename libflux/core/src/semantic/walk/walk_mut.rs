@@ -278,9 +278,9 @@ impl<'a> NodeMut<'a> {
 ///
 /// # Examples
 ///
-/// A Visitor that mutate node types:
+/// A Visitor that mutates node types:
 ///
-/// ```
+/// ```rust
 /// use core::semantic::walk::{NodeMut, VisitorMut};
 /// use core::semantic::types::*;
 ///
@@ -478,7 +478,7 @@ where
 
 /// Implementation of VisitorMut for a mutable closure.
 /// We need Higher-Rank Trait Bounds (`for<'a> ...`) here for compiling.
-/// See https://doc.rust-lang.org/nomicon/hrtb.html.
+/// See `<https://doc.rust-lang.org/nomicon/hrtb.html>`.
 impl<F> VisitorMut for F
 where
     F: for<'a> FnMut(&mut NodeMut<'a>),

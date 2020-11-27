@@ -140,10 +140,11 @@ fn check_vars<'a>(pkg: &'a nodes::Package, opts: &'a OptionMap) -> Result<(), Er
 }
 
 struct VarVisitor<'a> {
-    /// a map of all the options in the package
+    /// a map of all the options in the package.
     opts: &'a OptionMap<'a>,
-    /// a stack of maps showing which variables are currently in scope
-    /// (the last item in the Vec is the most nested scope)
+    /// A stack of maps showing which variables are currently in scope.
+    /// The last item in the Vec is the most nested scope.
+    // Q is it a stack or just a Vec?
     vars_stack: Vec<VariableAssignMap<'a>>,
     in_option: bool,
     err: Option<Error>,

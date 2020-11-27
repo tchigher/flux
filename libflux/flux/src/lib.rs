@@ -48,7 +48,7 @@ pub struct ErrorHandle {
 
 /// Frees a previously allocated error.
 ///
-/// Note: we use the pattern described here: https://doc.rust-lang.org/std/boxed/index.html#memory-layout
+/// Note: we use the pattern described [here](https://doc.rust-lang.org/std/boxed/index.html#memory-layout)
 /// wherein a pointer where ownership is being transferred is modeled as a Box, and if it could be
 /// null, then it's wrapped in an Option.
 #[no_mangle]
@@ -115,7 +115,7 @@ pub unsafe extern "C" fn flux_ast_get_error(
 
 /// Frees an AST package.
 ///
-/// Note: we use the pattern described here: https://doc.rust-lang.org/std/boxed/index.html#memory-layout
+/// Note: we use the pattern described [here](https://doc.rust-lang.org/std/boxed/index.html#memory-layout)
 /// wherein a pointer where ownership is being transferred is modeled as a Box, and if it could be
 /// null, then it's wrapped in an Option.
 #[no_mangle]
@@ -173,7 +173,7 @@ pub unsafe extern "C" fn flux_ast_marshal_json(
 ///
 /// # Safety
 ///
-/// This function is unsafe because it takes a dereferences a raw pointer passed
+/// This function is unsafe because it dereferences a raw pointer passed
 /// in as a parameter. For example, if that pointer is NULL, undefined behavior
 /// could occur.
 #[no_mangle]
@@ -208,7 +208,7 @@ pub extern "C" fn flux_free_semantic_pkg(_: Option<Box<semantic::nodes::Package>
 ///
 /// # Safety
 ///
-/// This function is unsafe because it takes a dereferences a raw pointer passed
+/// This function is unsafe because it dereferences a raw pointer passed
 /// in as a parameter. For example, if that pointer is NULL, undefined behavior
 /// could occur.
 #[no_mangle]
@@ -274,7 +274,7 @@ pub unsafe extern "C" fn flux_merge_ast_pkgs(
 
 /// merge_packages takes an input package and an output package, checks that the package
 /// clauses match and merges the files from the input package into the output package. If
-/// package clauses fail validation then an option with an Error is returned.
+/// package clauses fail validation then an Option with an Error is returned.
 pub fn merge_packages(out_pkg: &mut ast::Package, in_pkg: &mut ast::Package) -> Option<Error> {
     let out_pkg_name = if let Some(pc) = &out_pkg.files[0].package {
         &pc.name.name
@@ -377,6 +377,7 @@ pub unsafe extern "C" fn flux_find_var_type(
     )
 }
 
+// TODO(pierwill): Document SemanticAnalyzer.
 pub struct SemanticAnalyzer {
     f: Fresher,
     env: Environment,

@@ -1,12 +1,11 @@
 use crate::semantic::types::{MonoType, SubstitutionMap, Tvar};
 
-// A substitution defines a function that takes a monotype as input
-// and returns a monotype as output. The output type is interpreted
-// as being equivalent to the input type.
-//
-// Substitutions are idempotent. Given a substitution s and an input
-// type x, we have s(s(x)) = s(x).
-//
+/// A substitution defines a function that takes a monotype as input
+/// and returns a monotype as output. The output type is interpreted
+/// as being equivalent to the input type.
+///
+/// Substitutions are idempotent. Given a substitution s and an input
+/// type x, we have s(s(x)) = s(x).
 #[derive(Debug, PartialEq)]
 pub struct Substitution(SubstitutionMap);
 

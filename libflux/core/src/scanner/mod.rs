@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::ffi::CString;
 use std::str;
 
+// TODO documentme
 pub struct Scanner {
     data: CString,
     ps: *const CChar,
@@ -128,6 +129,7 @@ impl Scanner {
         }
     }
 
+    // TODO Document safety of this function.
     fn _scan(&mut self, mode: i32) -> Token {
         if self.p == self.eof {
             return self.get_eof_token();
