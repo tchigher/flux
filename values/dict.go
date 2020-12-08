@@ -232,7 +232,7 @@ func dictComparer(dictType semantic.MonoType) immutable.Comparer {
 	case semantic.Time:
 		return timeComparer{}
 	default:
-		panic(errors.Newf(codes.Internal, "invalid key nature: %s", n))
+		return intComparer{}
 	}
 }
 

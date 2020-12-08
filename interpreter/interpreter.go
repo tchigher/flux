@@ -324,6 +324,8 @@ func (itrp *Interpreter) doExpression(ctx context.Context, expr semantic.Express
 		return itrp.doStringExpression(ctx, e, scope)
 	case *semantic.ArrayExpression:
 		return itrp.doArray(ctx, e, scope)
+	case *semantic.DictExpression:
+		return itrp.doDict(ctx, e, scope)
 	case *semantic.IdentifierExpression:
 		value, ok := scope.Lookup(e.Name)
 		if !ok {
@@ -513,6 +515,25 @@ func (itrp *Interpreter) doArray(ctx context.Context, a *semantic.ArrayExpressio
 		elements[i] = v
 	}
 	return values.NewArrayWithBacking(a.TypeOf(), elements), nil
+}
+
+func (itrp *Interpreter) doDict(ctx context.Context, e *semantic.DictExpression, scope values.Scope) (values.Value, error) {
+	builder := values.NewDictBuilder(e.TypeOf())
+
+	for _, pair := range e.Elements {
+		key, err := itrp.doExpression(ctx, pair.Key, scope)
+		if err != nil {
+			return nil, err
+		}
+		val, err := itrp.doExpression(ctx, pair.Val, scope)
+		if err != nil {
+			return nil, err
+		}
+		if err := builder.Insert(key, val); err != nil {
+			return nil, err
+		}
+	}
+	return builder.Dict(), nil
 }
 
 func (itrp *Interpreter) doObject(ctx context.Context, m *semantic.ObjectExpression, scope values.Scope) (values.Value, error) {
